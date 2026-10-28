@@ -1489,3 +1489,11 @@ dialog::backdrop{background:#030a16cc}dialog li{margin:12px 0}dialog ol{padding-
 .chart-container{min-height:260px}.chart-subtitle{color:#adbed3!important}
 #report-motors{font-size:13px}.report-panel{padding:18px}.report-panel h2{font-size:18px}
 @media print{body *{visibility:hidden!important}#report-dialog,#report-dialog *{visibility:visible!important}#report-dialog{position:absolute;inset:0;width:100%;max-height:none;overflow:visible;border:0;background:white;color:black;padding:0}#report-dialog .report-controls{display:none!important}#print-report table{font-size:10px}dialog::backdrop{display:none}}
+
+/* Keep the live view concise; detailed explanations remain in reports/help. */
+.twin-mode-btn[data-mode="wireframe"]{display:none}
+.stat-sub,.logo-sub{display:none}
+.digital-twin-stage{height:460px!important;min-height:360px}
+.detail-twin-canvas{width:100%!important;height:100%!important}
+.reading-note{font-size:12px;color:#a5b6cf}
+@media(max-width:700px){.digital-twin-stage{height:380px!important}.twin-hud-overlay{gap:6px;flex-wrap:wrap}.hud-chip{padding:8px}}

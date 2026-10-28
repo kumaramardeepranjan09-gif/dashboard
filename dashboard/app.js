@@ -499,7 +499,7 @@ class Motor3D {
     this.ledMesh.position.set(1.15, 0.72, 0.6);
     this.statorGroup.add(this.ledMesh);
 
-    // DS18B20 Temp Probe with conduit
+    // LM35 Temperature Sensor with conduit
     const probeGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.5, 12);
     probeGeo.rotateZ(Math.PI / 2);
     const probe = new THREE.Mesh(probeGeo, this.chromeMat);
@@ -831,10 +831,10 @@ class DetailTwin3D {
     this.canvas = canvas;
     this.mode = 'solid'; // 'solid' | 'thermal' | 'wireframe' | 'exploded'
     this.currentMotorIdx = 0;
-    this.rotY = 0.8;
-    this.rotX = 0.3;
-    this.zoom = 5.8;
-    this.rotVelY = 0.003;
+    this.rotY = -0.65;
+    this.rotX = 0.12;
+    this.zoom = 6.8;
+    this.rotVelY = 0;
     this.rotVelX = 0;
     this.isDragging = false;
     this.tempC = 35;
@@ -1089,17 +1089,17 @@ class DetailTwin3D {
 
     // Reset view button
     document.getElementById('btn-reset-view')?.addEventListener('click', () => {
-      this.rotY = 0.8;
-      this.rotX = 0.3;
-      this.zoom = 5.8;
-      this.rotVelY = 0.003;
+      this.rotY = -0.65;
+      this.rotX = 0.12;
+      this.zoom = 6.8;
+      this.rotVelY = 0;
       this.rotVelX = 0;
       if (this.camera) this.camera.position.set(0, 1.6, this.zoom);
     });
 
     // Hotspot clicks
     document.getElementById('hotspot-temp')?.addEventListener('click', () => {
-      showToast('DS18B20 Temp Probe: Monitoring stator core thermal load.');
+      showToast('LM35 Temperature Sensor: Monitoring stator core thermal load.');
     });
     document.getElementById('hotspot-vib')?.addEventListener('click', () => {
       showToast('MPU6050 3-Axis IMU: Measuring mechanical bearing resonance.');
@@ -1474,7 +1474,7 @@ class DetailTwin3D {
     }
 
     // 8. Attached Sensor Micro-Hardware
-    // DS18B20 Temp Probe
+    // LM35 Temperature Sensor
     ctx.fillStyle = '#cbd5e1';
     ctx.fillRect(cx - 20, bodyY - 8, 8, 12);
     // MPU6050 3-Axis IMU with Pulsing micro-LED
@@ -2833,10 +2833,10 @@ function validateTelemetry(data) {
 }
 function renderReport() {
   const mode = config.demoMode ? 'DEMO — simulated' : 'HARDWARE';
-  setText('report-summary', mode + ' · Updated ' + new Date().toLocaleTimeString() + '. Health is a threshold-based indicator, not a remaining-life prediction.');
+  setText('report-summary', mode + ' · Updated ' + new Date().toLocaleTimeString() + '');
   const el = document.getElementById('report-motors');
   if (!el) return;
-  el.innerHTML = motorData.map((m,i) => m ? `<article><h3>Motor ${i+1}</h3><p>${escapeHtml(m.state)} · Health ${m.health}%</p><p>${m.relayOn ? 'Relay energized' : 'Relay off'} · RPM unavailable</p><p>${m.state === 'NORMAL' ? 'Maintenance: routine inspection; verify lubrication and mounting.' : 'Maintenance: inspect sensor connections, cooling, bearings and load before reset.'}</p><p>Life cycle: ${observedRunMinutes(i)} observed running minutes in retained samples. Remaining life unavailable. No rated-life model or lifetime counter is supplied by this hardware.</p></article>` : '<article>Awaiting hardware readings</article>').join('');
+  el.innerHTML = motorData.map((m,i) => m ? `<article><h3>Motor ${i+1}</h3><p>${escapeHtml(m.state)} · Health ${m.health}%</p><p>${m.relayOn ? 'Relay energized' : 'Relay off'} · RPM unavailable</p><p>${m.state === 'NORMAL' ? 'Routine inspection' : 'Inspection required — see report'}</p><p>Observed ON time: ${observedRunMinutes(i)} min</p></article>` : '<article>Awaiting hardware readings</article>').join('');
 }
 function exportTelemetry() {
   const rows = ['mode,motor,timestamp,state,relay_on,temperature_c,vibration_rms_g,vibration_peak_g'];

@@ -30,7 +30,7 @@
       </div>
       <div>
         <div class="logo-text">SmartPredict</div>
-        <div class="logo-sub">3D Digital Twin & Predictive Health</div>
+        <div class="logo-sub">Motor monitoring</div>
       </div>
     </div>
 
@@ -99,7 +99,7 @@
         <span id="conn-text">DEMO MODE</span>
       </div>
       <div id="last-seen" style="font-size:10px;"></div>
-      <div class="storage-tag">Browser LocalStorage Active</div>
+
     </div>
   </aside>
 
@@ -110,7 +110,7 @@
     <header class="topbar">
       <div class="topbar-left">
         <span class="topbar-title" id="topbar-page-title">Fleet Overview</span>
-        <span class="topbar-subtitle">ESP32 3-Axis Telemetry & Continuous Health AI</span>
+
       </div>
       <div class="topbar-right">
         <div class="system-health-pill healthy" id="sys-health-pill">
@@ -158,7 +158,7 @@
            ============================================================ -->
       <section class="page active" id="page-overview">
 
-        <section class="report-panel"><h2>Motor health & maintenance</h2><p id="report-summary">Select Demo or Hardware in Settings.</p><p>3D rotation in Hardware mode indicates relay state; physical rotation and RPM require a speed sensor.</p><button class="btn btn-outline" onclick="exportTelemetry()">Export reading history CSV</button><div id="report-motors"></div></section>
+        <section class="report-panel"><h2>Motor health & maintenance</h2><p id="report-summary">Select Demo or Hardware in Settings.</p><p class="reading-note">3D motion shows relay state · RPM not measured</p><button class="btn btn-outline" onclick="exportTelemetry()">Export reading history CSV</button><div id="report-motors"></div></section>
         <!-- Summary stats -->
         <div class="stats-bar">
           <div class="stat-card">
@@ -176,7 +176,7 @@
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             </div>
             <div class="stat-info">
-              <div class="stat-label">Telemetry Warnings</div>
+              <div class="stat-label">Warnings</div>
               <div class="stat-value warning" id="stat-warnings">—</div>
               <div class="stat-sub">attention required</div>
             </div>
