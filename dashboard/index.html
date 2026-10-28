@@ -140,8 +140,9 @@
         </div>
       </div>
 
+      <section class="connection-panel" aria-label="Hardware connection"><div><strong>ESP32 connection</strong><span class="connection-hint">Same Wi-Fi required</span></div><label for="quick-device-address" class="sr-only">ESP32 address</label><input id="quick-device-address" type="text" value="http://10.104.199.236" aria-label="ESP32 IP address"><button class="btn btn-primary" onclick="connectHardware()">Connect hardware</button><button class="btn btn-outline" onclick="disconnectHardware()">Disconnect</button><button class="btn btn-outline" onclick="useDemo()">Demo</button></section>
       <div class="monitor-actions">
-        <button class="btn btn-primary" onclick="generateReport()">Generate Report / PDF</button>
+        <button class="btn btn-primary" onclick="generateReport()">Fleet report / PDF</button>
         <button class="btn btn-outline" id="sound-toggle" onclick="toggleAlarmSound()" aria-pressed="false">Enable warning sound</button>
         <button class="btn btn-outline" onclick="document.getElementById('connect-help').showModal()">Connect real hardware</button>
       </div>
@@ -150,7 +151,7 @@
       <div class="demo-banner visible" id="demo-banner">
         <div class="icon">🎭</div>
         <span>DEMO MODE</span>
-        <p>— Simulated data only. Set your ESP32 IP in Settings to switch to live data. Disable Demo after entering your device address.</p>
+        <p>Simulated readings · Use Connect hardware for live data.</p>
       </div>
 
       <!-- ============================================================
@@ -273,6 +274,7 @@
                   <div class="health-bar-fill" id="m0-health-bar" style="width:0%"></div>
                 </div>
               </div>
+              <button class="motor-report-btn btn btn-outline" onclick="event.stopPropagation(); generateReport(0)">Motor 1 report</button>
               <button class="quick-inspect-btn" onclick="showMotorDetail(0); event.stopPropagation();">
                 Inspect 3D Twin →
               </button>
@@ -356,6 +358,7 @@
                   <div class="health-bar-fill" id="m1-health-bar" style="width:0%"></div>
                 </div>
               </div>
+              <button class="motor-report-btn btn btn-outline" onclick="event.stopPropagation(); generateReport(1)">Motor 2 report</button>
               <button class="quick-inspect-btn" onclick="showMotorDetail(1); event.stopPropagation();">
                 Inspect 3D Twin →
               </button>
@@ -439,6 +442,7 @@
                   <div class="health-bar-fill" id="m2-health-bar" style="width:0%"></div>
                 </div>
               </div>
+              <button class="motor-report-btn btn btn-outline" onclick="event.stopPropagation(); generateReport(2)">Motor 3 report</button>
               <button class="quick-inspect-btn" onclick="showMotorDetail(2); event.stopPropagation();">
                 Inspect 3D Twin →
               </button>
@@ -517,7 +521,7 @@
                 </div>
                 <h3 class="twin-title" id="twin-motor-title">Motor 1 — Motor View</h3>
               </div>
-              <div class="twin-controls">
+              <div class="twin-controls"><button class="btn btn-primary" onclick="generateReport(selectedMotor)">Motor report</button>
                 <div class="twin-mode-selector">
                   <button class="twin-mode-btn active" data-mode="solid" title="Realistic Industrial Casting">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
@@ -758,7 +762,7 @@
             <div class="settings-title">📡 ESP32 Connection</div>
             <div class="form-group">
               <label class="form-label">ESP32 Device URL</label>
-              <input type="url" class="form-input" id="setting-esp32-url" placeholder="http://192.168.1.100" />
+              <input type="url" class="form-input" id="setting-esp32-url" placeholder="http://10.104.199.236" />
               <div class="form-hint">The dashboard polls <code>/api/status</code> at this URL. Must be on the same local network. HTTPS pages cannot poll plain HTTP ESP32 devices — open this dashboard from a local file or from the ESP32 directly.</div>
             </div>
             <div class="form-group">
@@ -860,7 +864,7 @@
 <li>Power/network disconnect karke OFFLINE aur stopped animation verify karein. Reconnect automatically retry hota hai.</li></ol>
 <p>RPM sensor firmware mein nahi hai: 3D shaft relay state indicate karta hai, measured speed nahi. Dashboard ko HTTP par run karein; HTTPS page HTTP ESP32 ko block kar sakta hai. VPN, guest Wi-Fi isolation aur firewall bhi connection block kar sakte hain.</p>
 <button class="btn btn-primary" onclick="this.closest('dialog').close()">Got it</button></dialog>
-<dialog id="report-dialog"><div class="report-controls"><button class="btn btn-primary" onclick="window.print()">Print / Save as PDF</button> <button class="btn btn-outline" onclick="exportTelemetry()">Download readings CSV</button> <button class="btn btn-outline" onclick="this.closest('dialog').close()">Close</button></div><div id="print-report"></div></dialog>
+<dialog id="report-dialog"><div class="report-controls"><button class="btn btn-primary" onclick="window.print()">Print / Save as PDF</button> <button class="btn btn-outline" onclick="exportTelemetry(reportMotorIndex)">Download readings CSV</button> <button class="btn btn-outline" onclick="this.closest('dialog').close()">Close</button></div><div id="print-report"></div></dialog>
 <script src="app.js"></script>
 
 </body>

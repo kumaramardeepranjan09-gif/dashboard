@@ -34,3 +34,8 @@ Use **Generate Report / PDF** at the top of the dashboard, then **Print / Save a
 Click **Enable warning sound** once per browser session. A short alarm plays for new warning/failure states; click again to mute. Visual warnings remain active without sound. Demo alarms are labelled simulated. Browser/device volume and audio permission affect sound; the dashboard is not a replacement for ESP32 local protection.
 
 Click **Connect real hardware** for the full connection checklist. Set Wi-Fi credentials in firmware, upload, read its IP from Serial Monitor at 115200 baud, verify `/api/status` in the same network, then enter that IP in Settings and disable Demo. No physical RPM measurement is available in the existing firmware.
+
+## Your ESP32 and individual reports
+The connection bar defaults to **http://10.104.199.236**. Connect your computer to the same network as the ESP32 and click **Connect hardware**. First verify `http://10.104.199.236/api/status` opens in that computer's browser. The cloud development machine cannot establish that your private-network ESP32 is reachable. If DHCP changes the IP, edit the address in the connection bar (or reserve its address in the router). **Disconnect** pauses monitoring only; it does not command the relay. **Demo** explicitly switches to simulated readings.
+
+Each motor card and motor-detail screen has a **Motor report** button. The printable report and its CSV include only that selected motor. Failure reasons come from firmware plus reported threshold evidence; possible physical causes remain unconfirmed until inspected. Fleet reports remain available separately.

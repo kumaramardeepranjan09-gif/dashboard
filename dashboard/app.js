@@ -22,7 +22,7 @@ const READINGS_KEY  = 'smartpredict_readings_v2';
 const ALERTS_KEY    = 'smartpredict_alerts_v2';
 
 const DEFAULT_CONFIG = {
-  esp32Url: 'http://192.168.1.100',     // Change to your ESP32 IP
+  esp32Url: 'http://10.104.199.236',     // Change to your ESP32 IP
   refreshInterval: 3000,                // ms
   chartRange: 20,                       // number of data points
   dataRetentionDays: 30,
@@ -76,7 +76,7 @@ function loadConfig() {
       ...DEFAULT_CONFIG,
       ...saved,
       demoMode: typeof saved.demoMode === 'boolean' ? saved.demoMode : true,
-      esp32Url: typeof saved.esp32Url === 'string' ? saved.esp32Url : DEFAULT_CONFIG.esp32Url,
+      esp32Url: typeof saved.esp32Url === 'string' && saved.esp32Url !== 'http://192.168.1.100' ? saved.esp32Url : DEFAULT_CONFIG.esp32Url,
       thresholds: [0,1,2].map(i => ({...DEFAULT_CONFIG.thresholds[i], ...(saved.thresholds?.[i] || {})}))
     };
   } catch { return { ...DEFAULT_CONFIG }; }
@@ -1661,10 +1661,11 @@ function stepDemoSimulation() {
 // ============================================================
 let lastTelemetrySignature = '';
 let lastTelemetryChange = 0;
+let hardwarePaused = false;
 let pollBusy = false;
 let pollGeneration = 0;
 async function pollESP32() {
-  if (pollBusy || config.demoMode) return;
+  if (pollBusy || config.demoMode || hardwarePaused) return;
   pollBusy = true;
   const generation = pollGeneration;
   const url = `${config.esp32Url.replace(/\/$/, '')}/api/status`;
@@ -1714,6 +1715,7 @@ async function pollESP32() {
         vibRmsCrit: m.thresholds.vib_rms_crit,
         vibPeakWarn: m.thresholds.vib_peak_warn,
         vibPeakCrit: m.thresholds.vib_peak_crit,
+        calibrated: m.thresholds.calibrated === true,
       }
     }));
 
@@ -2627,6 +2629,7 @@ function navigateTo(page) {
 // ─── POLLING ────────────────────────────────────────────────
 // ============================================================
 function restartPolling() {
+  hardwarePaused = false;
   pollGeneration++;
   lastTelemetrySignature = '';
   lastTelemetryChange = 0;
@@ -2727,6 +2730,7 @@ window.markResolved = markResolved;
 
 function initApp() {
   console.log('SmartPredict: initializing application...');
+  setInputVal('quick-device-address', config.esp32Url);
 
   // 1. Clock update & interval FIRST
   try {
@@ -2823,6 +2827,9 @@ function validateTelemetry(data) {
     if (![1,2,3].includes(m.id) || ids.has(m.id)) throw new Error('Invalid motor IDs');
     ids.add(m.id);
     if (!['NORMAL','WARNING','CRITICAL','SENSOR_FAULT','LATCHED_OFF'].includes(m.state) || typeof m.relay_on !== 'boolean' || !m.sensors || !m.thresholds || !Number.isFinite(m.health) || m.health < 0 || m.health > 100) throw new Error('Invalid motor telemetry');
+    for (const key of ['temp_warn','temp_crit','vib_rms_warn','vib_rms_crit','vib_peak_warn','vib_peak_crit']) {
+      if (!Number.isFinite(m.thresholds[key])) m.thresholds[key] = null;
+    }
     const s = m.sensors;
     if (!Number.isFinite(s.timestamp) || s.timestamp < 0) throw new Error('Missing sensor timestamp');
     for (const axis of ['accel_x','accel_y','accel_z']) if (!Number.isFinite(s[axis])) s[axis] = null;
@@ -2838,10 +2845,10 @@ function renderReport() {
   if (!el) return;
   el.innerHTML = motorData.map((m,i) => m ? `<article><h3>Motor ${i+1}</h3><p>${escapeHtml(m.state)} · Health ${m.health}%</p><p>${m.relayOn ? 'Relay energized' : 'Relay off'} · RPM unavailable</p><p>${m.state === 'NORMAL' ? 'Routine inspection' : 'Inspection required — see report'}</p><p>Observed ON time: ${observedRunMinutes(i)} min</p></article>` : '<article>Awaiting hardware readings</article>').join('');
 }
-function exportTelemetry() {
+function exportTelemetry(motorIndex = null) {
   const rows = ['mode,motor,timestamp,state,relay_on,temperature_c,vibration_rms_g,vibration_peak_g'];
-  Object.values(readings).forEach((samples,i) => (samples || []).forEach(r => rows.push([r.mode || (config.demoMode ? 'DEMO' : 'HARDWARE'),i+1,new Date(r.ts).toISOString(),r.state || '',r.relayOn ?? '',r.temp ?? '',r.vibRms ?? '',r.vibPeak ?? ''].join(','))));
-  downloadFile('motor-telemetry.csv', rows.join('\n'), 'text/csv');
+  Object.values(readings).forEach((samples,i) => (motorIndex === null || i === motorIndex ? samples || [] : []).forEach(r => rows.push([r.mode || (config.demoMode ? 'DEMO' : 'HARDWARE'),i+1,new Date(r.ts).toISOString(),r.state || '',r.relayOn ?? '',r.temp ?? '',r.vibRms ?? '',r.vibPeak ?? ''].join(','))));
+  downloadFile(motorIndex === null ? 'fleet-readings.csv' : `motor-${motorIndex+1}-readings.csv`, rows.join('\n'), 'text/csv');
 }
 
 function safeStore(key, value) { try { localStorage.setItem(key,value); } catch { console.warn('Storage unavailable: export history before closing.'); } }
@@ -2904,15 +2911,58 @@ function updateFailureWarning() {
   if(faults.length && signature!==lastAlarmSignature)playAlarm();
   lastAlarmSignature=signature;
 }
-function generateReport() {
+let reportMotorIndex = null;
+function generateReport(motorIndex = null) {
+  reportMotorIndex = Number.isInteger(motorIndex) && motorIndex >= 0 && motorIndex < 3 ? motorIndex : null;
+  const selectedIncidents = incidents.filter(x => reportMotorIndex === null || x.motorId === reportMotorIndex + 1);
+  document.title = reportMotorIndex === null ? 'Fleet report — SmartPredict' : `Motor ${reportMotorIndex+1} report — SmartPredict`;
   const mode=config.demoMode ? 'DEMO — simulated data' : 'HARDWARE';
   const esc=escapeHtml;
   const rows=motorData.map((m,i)=>{
+    if(reportMotorIndex !== null && i !== reportMotorIndex) return "";
     const samples=readings[i] || [];
     const temperatures=samples.map(r=>r.temp).filter(Number.isFinite);
     const peak=temperatures.length ? Math.max(...temperatures).toFixed(1)+' °C' : 'No history';
     return `<tr><td>Motor ${i+1}</td><td>${m?esc(m.state):'Unavailable'}</td><td>${m?m.health+'%':'—'}</td><td>${m?.sensors.tempOk?m.sensors.tempC.toFixed(1)+' °C':'Unavailable'}</td><td>${m?.sensors.vibOk?m.sensors.vibRms.toFixed(3)+' g':'Unavailable'}</td><td>${peak}</td><td>${observedRunMinutes(i)} min</td></tr>`;
   }).join('');
-  document.getElementById('print-report').innerHTML=`<h1>Motor condition & maintenance report</h1><p><strong>${mode}</strong> · Generated ${esc(new Date().toLocaleString())}</p><p>Connection: ${config.demoMode?'Demo':deviceOnline?'Online':'Offline'} · Last hardware response: ${lastSeenTime?esc(lastSeenTime.toLocaleString()):'None'}</p><table><thead><tr><th>Motor</th><th>Condition</th><th>Health</th><th>Temperature</th><th>Vibration RMS</th><th>Peak recorded temp</th><th>Observed ON time</th></tr></thead><tbody>${rows}</tbody></table><h2>Maintenance actions</h2><p>For temperature warnings inspect cooling and load. For vibration warnings inspect mounting and bearings. Sensor faults require wiring/sensor checks. Investigate latched shutdowns before resetting the ESP32.</p><h2>Recorded incidents (${incidents.length})</h2>${incidents.slice(0,30).map(x=>`<p>${esc(x.startTime)} — Motor ${x.motorId}: ${esc(x.severity)}. ${esc(x.faultReason || '')}</p>`).join('') || '<p>No incidents in this mode.</p>'}<h2>Life-cycle interpretation</h2><p>Observed relay-on time covers retained samples only (up to 500 per motor), excluding long gaps. It is not lifetime usage. Remaining life and actual RPM are unavailable with this firmware. Health is a threshold-based indicator. Historical samples may predate the current connection.</p>`;
-  document.getElementById('report-dialog').showModal();
+  document.getElementById('print-report').innerHTML=`<h1>${reportMotorIndex === null ? "Fleet" : "Motor " + (reportMotorIndex + 1)} condition & maintenance report</h1><p><strong>${mode}</strong> · Generated ${esc(new Date().toLocaleString())}</p><p>Connection: ${config.demoMode?'Demo':deviceOnline?'Online':'Offline'} · Last hardware response: ${lastSeenTime?esc(lastSeenTime.toLocaleString()):'None'}</p><table><thead><tr><th>Motor</th><th>Condition</th><th>Health</th><th>Temperature</th><th>Vibration RMS</th><th>Peak recorded temp</th><th>Observed ON time</th></tr></thead><tbody>${rows}</tbody></table>${motorData.map((m,i)=>reportMotorIndex !== null && i !== reportMotorIndex ? "" : `<section class="failure-evidence"><h2>Motor ${i+1} — Failure reason</h2><p>${esc(failureReason(m))}</p><p><strong>Device evidence:</strong> ${esc(m?.faultEvidence || "No additional evidence reported.")}</p><p><strong>Possible causes:</strong> ${esc(m && m.state !== "NORMAL" ? "Cooling/load problems, loose mounting, bearing wear or sensor/wiring faults. Physical inspection is required to establish the cause." : "No current fault diagnosis.")}</p></section>`).join("")}<h2>Maintenance actions</h2><p>For temperature warnings inspect cooling and load. For vibration warnings inspect mounting and bearings. Sensor faults require wiring/sensor checks. Investigate latched shutdowns before resetting the ESP32.</p><h2>Recorded incidents (${selectedIncidents.length})</h2>${selectedIncidents.slice(0,30).map(x=>`<p>${esc(x.startTime)} — Motor ${x.motorId}: ${esc(x.severity)}. ${esc(x.faultReason || '')}</p>`).join('') || '<p>No incidents in this mode.</p>'}<h2>Life-cycle interpretation</h2><p>Observed relay-on time covers retained samples only (up to 500 per motor), excluding long gaps. It is not lifetime usage. Remaining life and actual RPM are unavailable with this firmware. Health is a threshold-based indicator. Historical samples may predate the current connection.</p>`;
+  const dialog = document.getElementById('report-dialog');
+  if (!dialog.open) dialog.showModal();
 }
+
+function failureReason(m) {
+  if (!m) return 'Current readings unavailable. Check recorded incidents for previous failures.';
+  if (m.state === 'NORMAL') return 'No active fault reported by the device.';
+  if (m.faultReason) return m.faultReason;
+  const reasons=[];
+  const sensors=m.sensors, th=m.thresholds || {};
+  if(!sensors.tempOk) reasons.push('Temperature sensor reading is invalid');
+  if(!sensors.vibOk) reasons.push('Vibration sensor reading is invalid');
+  if(sensors.tempOk && sensors.tempC>=th.tempWarn) reasons.push(`Temperature ${sensors.tempC.toFixed(1)} °C exceeds warning threshold ${th.tempWarn} °C`);
+  if(sensors.vibOk && sensors.vibRms>=th.vibRmsWarn) reasons.push(`Vibration RMS ${sensors.vibRms.toFixed(3)} g exceeds warning threshold ${th.vibRmsWarn} g`);
+  if(sensors.vibOk && sensors.vibPeak>=th.vibPeakWarn) reasons.push(`Vibration peak ${sensors.vibPeak.toFixed(3)} g exceeds warning threshold ${th.vibPeakWarn} g`);
+  return reasons.join('. ') || (m.latchedOff ? 'Motor is latched off following an earlier fault. Review incident history before reset.' : 'Device reports '+m.state+' but has not supplied a specific cause. Inspect hardware and incident history.');
+}
+function connectHardware() {
+  const input=document.getElementById('quick-device-address');
+  let address=input.value.trim();
+  if(!address.includes('://')) address='http://'+address;
+  try {
+    const url=new URL(address);
+    if(!['http:','https:'].includes(url.protocol) || url.username || url.password || url.pathname !== '/' || url.search || url.hash) throw Error();
+    config.esp32Url=url.origin; config.demoMode=false; saveConfig();restartPolling();
+    input.value=config.esp32Url;
+    showToast('Connecting to '+url.hostname, 'info');
+  } catch {showToast('Enter an ESP32 IP or HTTP address only.', 'error');}
+}
+function disconnectHardware() {
+  pollGeneration++; hardwarePaused=true;
+  clearInterval(pollInterval);pollInterval=null;
+  deviceOnline=false; motorData=[null,null,null];window.motorData=motorData;
+  for(const model of [...motor3DInstances,detailTwinInstance]) if(model){model.currentRPM=0;model.targetRPM=0;model.relayOn=false;model.vibRms=0;model.vibrationAmp=0;}
+  updateOverviewPage();updateConnectionUI(false);updateFailureWarning();renderReport();
+  for(const id of ['twin-hud-relay','twin-hud-temp','twin-hud-vib','twin-hud-rpm','detail-state','detail-relay','detail-health','detail-temp-c','detail-vib-rms','detail-vib-peak','detail-accel-x','detail-accel-y','detail-accel-z'])setText(id,'Disconnected');
+  setText('conn-text','MONITORING PAUSED');
+  showToast('Monitoring paused. This does not switch off the physical motors.', 'info');
+}
+function useDemo() {config.demoMode=true;saveConfig();restartPolling();}

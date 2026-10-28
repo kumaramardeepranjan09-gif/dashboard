@@ -66,6 +66,26 @@ await page.evaluate(async()=>{
  document.getElementById('connect-help').showModal();document.getElementById('connect-help').close();
  showMotorDetail(0);
 });
+await page.evaluate(()=>{
+ motorData[1].state='CRITICAL';motorData[1].faultReason='Motor 2 temperature exceeded 80 C';
+ generateReport(1);
+ const text=document.getElementById('print-report').textContent;
+ if(!text.includes('Motor 2 condition') || !text.includes('Motor 2 temperature exceeded 80 C'))throw Error('Individual report missing failure reason');
+ if(text.includes('Motor 1 — Failure reason') || text.includes('Motor 3 — Failure reason'))throw Error('Other motor leaked into report');
+ document.getElementById('report-dialog').close();
+ disconnectHardware();
+ if(!hardwarePaused || motorData.some(Boolean) || detailTwinInstance.targetRPM!==0)throw Error('Disconnect did not pause monitoring');
+ const old=config.esp32Url;
+ document.getElementById('quick-device-address').value='javascript:alert(1)';connectHardware();
+ if(config.esp32Url!==old)throw Error('Invalid device URL accepted');
+ document.getElementById('quick-device-address').value='http://10.104.199.236';
+ useDemo();
+ if(!config.demoMode || hardwarePaused)throw Error('Demo restart failed');
+});
+await page.setViewportSize({width:390,height:844});
+await page.evaluate(()=>navigateTo('overview'));
+await page.screenshot({path:'/workspace/dashboard/mobile-check.png',fullPage:true});
+await page.setViewportSize({width:1440,height:1000});
 assert.deepEqual(errors,[]);
 await page.screenshot({path:'/workspace/dashboard/dashboard-check.png',fullPage:true});
 console.log('PASS: hardware response, relay stop, stale rejection, recovery, CSV download; demo startup, hardware disconnect, no automatic demo fallback, schema validation, invalid sensor, navigation; no uncaught browser errors.');

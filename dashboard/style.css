@@ -1497,3 +1497,13 @@ dialog::backdrop{background:#030a16cc}dialog li{margin:12px 0}dialog ol{padding-
 .detail-twin-canvas{width:100%!important;height:100%!important}
 .reading-note{font-size:12px;color:#a5b6cf}
 @media(max-width:700px){.digital-twin-stage{height:380px!important}.twin-hud-overlay{gap:6px;flex-wrap:wrap}.hud-chip{padding:8px}}
+
+.connection-panel{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:18px;background:#132137;border:1px solid #2c4260;border-radius:14px;margin-top:20px}
+.connection-panel>div{margin-right:auto}.connection-hint{display:block;color:#adbed3;font-size:12px;margin-top:3px}
+.connection-panel input{background:#091423;color:#eaf4ff;border:1px solid #536b87;border-radius:8px;padding:11px 12px;min-width:220px;font:inherit}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #60cfff;outline-offset:3px}
+.motor-report-btn{position:relative;z-index:2;margin:8px}.failure-evidence{border-left:3px solid #60cfff;padding-left:16px;margin:24px 0}
+.report-panel{background:transparent;border:0;padding:0 0 14px}.report-panel>h2,.report-panel>.reading-note,#report-motors{display:none}
+.monitor-actions .btn{min-height:42px}.motor-card{border-color:#31445e!important}.stat-card{box-shadow:none!important}
+@media(max-width:700px){.connection-panel input{width:100%;min-width:0}.connection-panel .btn{flex:1}.twin-controls{flex-wrap:wrap}.monitor-actions{gap:8px}.connection-panel>div{width:100%}}
