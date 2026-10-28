@@ -2,7 +2,7 @@
  * SmartPredict Dashboard — app.js
  * Complete client-side application with 3D motor visualization,
  * localStorage persistence, and ESP32 HTTP integration.
- * 
+ *
  * IMPORTANT NOTES:
  * - Data is stored in browser localStorage only (single device, single browser).
  * - localStorage does NOT provide shared, permanent, or multi-device storage.
@@ -2233,7 +2233,7 @@ function renderAlerts() {
       </div>
       <div class="alert-body">
         <b>Reason:</b> ${escapeHtml(alert.faultReason) || 'N/A'}<br>
-        <b>Temp:</b> ${alert.temp?.toFixed(1) ?? 'N/A'} °C &bull; 
+        <b>Temp:</b> ${alert.temp?.toFixed(1) ?? 'N/A'} °C &bull;
         <b>Vib RMS:</b> ${alert.vibRms?.toFixed(3) ?? 'N/A'} g &bull;
         <b>Peak:</b> ${alert.vibPeak?.toFixed(3) ?? 'N/A'} g
       </div>
@@ -2350,7 +2350,7 @@ function renderIncidentCard(inc) {
         <b>Possible causes (requires inspection to confirm):</b><br>
         ${(inc.possibleCauses || []).map(c => `• ${escapeHtml(c)}`).join('<br>') || 'None listed'}
         <br><br><em style="color:var(--text-muted);font-size:11px;">
-        ⚠️ MPU6050 and LM35 readings provide observable evidence only. The exact mechanical root cause 
+        ⚠️ MPU6050 and LM35 readings provide observable evidence only. The exact mechanical root cause
         cannot be confirmed by sensors alone and requires physical inspection.</em>
       </div>
       <div class="incident-section-title">🔧 Maintenance</div>

@@ -62,7 +62,7 @@ while ($listener.IsListening) {
         $contentType = $mimeMap[$ext]
         if (-not $contentType) { $contentType = "application/octet-stream" }
         $response.ContentType = $contentType
-        
+
         $bytes = [System.IO.File]::ReadAllBytes($filePath)
         $response.ContentLength64 = $bytes.Length
         $response.OutputStream.Write($bytes, 0, $bytes.Length)

@@ -1,8 +1,8 @@
 # SmartPredict — Predictive Maintenance System
 
-> **⚠️ IMPORTANT SAFETY NOTICE**  
-> This project controls real electrical relays and motors. All thresholds are **UNCALIBRATED** and are examples only.  
-> You **must** verify every wiring connection, calibrate thresholds, and test in a safe, isolated environment before using this system on real machinery.  
+> **⚠️ IMPORTANT SAFETY NOTICE**
+> This project controls real electrical relays and motors. All thresholds are **UNCALIBRATED** and are examples only.
+> You **must** verify every wiring connection, calibrate thresholds, and test in a safe, isolated environment before using this system on real machinery.
 > Physical wiring diagrams in this document have **not been physically verified**. Always compare pin labels on your actual hardware modules with this document before making any connections.
 
 ---
@@ -66,29 +66,29 @@ graph TB
         M1[Motor 1<br/>GPIO25 Relay]
         M2[Motor 2<br/>GPIO26 Relay]
         M3[Motor 3<br/>GPIO27 Relay]
-        
+
         IMU1[MPU6050 Bus1<br/>0x68 SDA21/SCL22]
         IMU2[MPU6050 Bus1<br/>0x69 SDA21/SCL22]
         IMU3[MPU6050 Bus2<br/>0x68 SDA16/SCL17]
-        
+
         T1[LM35 GPIO34]
         T2[LM35 GPIO35]
         T3[LM35 GPIO32]
     end
-    
+
     subgraph Firmware["ESP32 Firmware"]
         SM[State Machine<br/>NORMAL/WARN/CRIT/FAULT/LATCHED]
         WS[Web Server<br/>:80/api/status]
         RELAY[Relay Controller<br/>Local Protection]
     end
-    
+
     subgraph Dashboard["Browser Dashboard (No Backend)"]
         OV[Overview Page<br/>3D Motors + Stats]
         AC[Alert Center]
         FH[Failure History<br/>localStorage]
         ST[Settings]
     end
-    
+
     Hardware --> Firmware
     SM --> RELAY
     WS -->|"HTTP GET /api/status<br/>Same local network"| Dashboard
@@ -257,7 +257,7 @@ External Power Supply (+) ──── Relay COM (Common)
                                Relay NO (Normally Open)
                                     │
                               Motor (+) terminal
-                                    
+
 External Power Supply (−) ──── Motor (−) terminal
                            ──── (Also share GND with ESP32)
 ```
