@@ -135,16 +135,22 @@
           <p>Cannot connect to the ESP32 at the configured address. Check Wi-Fi, verify the IP, and ensure the device is powered.</p>
           <div class="last-seen" id="last-seen-banner">Last contact: never</div>
           <div style="margin-top:4px;font-size:11px;color:var(--text-muted);">
-            The dashboard is in <b>DEMO mode</b> — no real sensor data is displayed. Motor protection continues locally on the ESP32.
+            Hardware data is unavailable. No simulated readings are substituted. Motor protection continues locally on the ESP32.
           </div>
         </div>
       </div>
 
+      <div class="monitor-actions">
+        <button class="btn btn-primary" onclick="generateReport()">Generate Report / PDF</button>
+        <button class="btn btn-outline" id="sound-toggle" onclick="toggleAlarmSound()" aria-pressed="false">Enable warning sound</button>
+        <button class="btn btn-outline" onclick="document.getElementById('connect-help').showModal()">Connect real hardware</button>
+      </div>
+      <div id="failure-warning" role="alert" aria-live="assertive" hidden></div>
       <!-- ── DEMO BANNER ── -->
       <div class="demo-banner visible" id="demo-banner">
         <div class="icon">🎭</div>
         <span>DEMO MODE</span>
-        <p>— Simulated data only. Set your ESP32 IP in Settings to switch to live data. Configure ESP32_URL first.</p>
+        <p>— Simulated data only. Set your ESP32 IP in Settings to switch to live data. Disable Demo after entering your device address.</p>
       </div>
 
       <!-- ============================================================
@@ -509,7 +515,7 @@
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
                   3D DIGITAL TWIN
                 </div>
-                <h3 class="twin-title" id="twin-motor-title">Motor 1 — Telemetry Augmented Twin</h3>
+                <h3 class="twin-title" id="twin-motor-title">Motor 1 — Motor View</h3>
               </div>
               <div class="twin-controls">
                 <div class="twin-mode-selector">
@@ -542,7 +548,7 @@
 
               <!-- Interactive 3D Hotspot Markers -->
               <div class="twin-hotspot-layer">
-                <div class="twin-hotspot" id="hotspot-temp" style="top:28%; left:45%;" title="Stator Core & DS18B20 Temp Probe">
+                <div class="twin-hotspot" id="hotspot-temp" style="top:28%; left:45%;" title="Stator Core & LM35 Temp Probe">
                   <span class="hotspot-pulse"></span>
                   <span class="hotspot-label">🌡️ Temp Probe</span>
                 </div>
@@ -572,7 +578,7 @@
                 </div>
                 <div class="hud-chip">
                   <span class="hud-label">SHAFT SPEED</span>
-                  <span class="hud-val" id="twin-hud-rpm">1800 RPM</span>
+                  <span class="hud-val" id="twin-hud-rpm">Unavailable</span>
                 </div>
                 <div class="hud-chip">
                   <span class="hud-label">RELAY CONTACTOR</span>
@@ -845,6 +851,16 @@
 <div id="toast-container"></div>
 
 <!-- App JS -->
+<dialog id="connect-help"><h2>Connect your ESP32</h2><ol>
+<li>Arduino IDE mein firmware Wi-Fi SSID/password set karke ESP32 par upload karein. GPIO wiring aur required libraries: HARDWARE.md.</li>
+<li>ESP32 aur laptop ko same Wi-Fi par rakhein. Serial Monitor (115200 baud) se device IP copy karein.</li>
+<li>Browser mein http://DEVICE-IP/api/status open karein. Three motors ka JSON aana chahiye.</li>
+<li>Dashboard ko start-dashboard.bat se open karein. Settings mein http://DEVICE-IP enter karein, Demo OFF karein aur Save karein.</li>
+<li>Browser local-network permission allow karein. DEVICE ONLINE aur changing readings check karein.</li>
+<li>Power/network disconnect karke OFFLINE aur stopped animation verify karein. Reconnect automatically retry hota hai.</li></ol>
+<p>RPM sensor firmware mein nahi hai: 3D shaft relay state indicate karta hai, measured speed nahi. Dashboard ko HTTP par run karein; HTTPS page HTTP ESP32 ko block kar sakta hai. VPN, guest Wi-Fi isolation aur firewall bhi connection block kar sakte hain.</p>
+<button class="btn btn-primary" onclick="this.closest('dialog').close()">Got it</button></dialog>
+<dialog id="report-dialog"><div class="report-controls"><button class="btn btn-primary" onclick="window.print()">Print / Save as PDF</button> <button class="btn btn-outline" onclick="exportTelemetry()">Download readings CSV</button> <button class="btn btn-outline" onclick="this.closest('dialog').close()">Close</button></div><div id="print-report"></div></dialog>
 <script src="app.js"></script>
 
 </body>

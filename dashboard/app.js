@@ -343,6 +343,9 @@ class Motor3D {
       alpha: true,
       powerPreference: 'high-performance'
     });
+    this.renderer.outputEncoding = THREE.sRGBEncoding;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.15;
     this.renderer.setSize(W, H, false);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
@@ -400,7 +403,7 @@ class Motor3D {
     this.accentMat = new THREE.MeshStandardMaterial({
       color: 0x00d4ff,
       emissive: 0x00d4ff,
-      emissiveIntensity: 0.85,
+      emissiveIntensity: 0.12,
       metalness: 0.3,
       roughness: 0.2,
     });
@@ -545,6 +548,7 @@ class Motor3D {
       wireframe: true,
     }));
     this.pedestalMesh.position.set(0, -1.08, 0);
+    this.pedestalMesh.visible = false;
     this.rootGroup.add(this.pedestalMesh);
   }
 
@@ -607,7 +611,10 @@ class Motor3D {
     if (W > 30 && H > 30) {
       this.camera.aspect = W / H;
       this.camera.updateProjectionMatrix();
-      this.renderer.setSize(W, H, false);
+      this.renderer.outputEncoding = THREE.sRGBEncoding;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.15;
+    this.renderer.setSize(W, H, false);
     }
   }
 
@@ -649,6 +656,7 @@ class Motor3D {
       if (col.emissive && this.bodyMat.emissive) this.bodyMat.emissive.setHex(col.emissive);
       this.accentMat.color.setHex(col.accent);
       this.accentMat.emissive.setHex(col.accent);
+      this.accentMat.emissiveIntensity = 0.12;
       this.glowLight.color.setHex(col.glow);
       if (this.pedestalMesh) this.pedestalMesh.material.color.setHex(col.accent);
     }
@@ -889,11 +897,14 @@ class DetailTwin3D {
       alpha: true,
       powerPreference: 'high-performance'
     });
+    this.renderer.outputEncoding = THREE.sRGBEncoding;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.15;
     this.renderer.setSize(W, H, false);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
     // Studio Lighting
-    this.ambientLight = new THREE.AmbientLight(0xffffff, 1.15);
+    this.ambientLight = new THREE.AmbientLight(0xdde8ff, 0.65);
     this.scene.add(this.ambientLight);
 
     this.keyLight = new THREE.DirectionalLight(0xffffff, 1.3);
@@ -904,7 +915,7 @@ class DetailTwin3D {
     this.rimLight.position.set(-8, -3, -6);
     this.scene.add(this.rimLight);
 
-    this.glowLight = new THREE.PointLight(0x00d4ff, 2.2, 9);
+    this.glowLight = new THREE.PointLight(0x8acbff, 0.45, 9);
     this.glowLight.position.set(0, 0, 0);
     this.scene.add(this.glowLight);
 
@@ -952,7 +963,7 @@ class DetailTwin3D {
     this.accentMat = new THREE.MeshStandardMaterial({
       color: 0x00d4ff,
       emissive: 0x00d4ff,
-      emissiveIntensity: 0.85,
+      emissiveIntensity: 0.12,
       metalness: 0.3,
       roughness: 0.2,
     });
@@ -1029,6 +1040,7 @@ class DetailTwin3D {
       wireframe: true,
     }));
     this.pedestalMesh.position.set(0, -1.2, 0);
+    this.pedestalMesh.visible = false;
     this.rootGroup.add(this.pedestalMesh);
   }
 
@@ -1112,7 +1124,10 @@ class DetailTwin3D {
     if (W > 30 && H > 30) {
       this.camera.aspect = W / H;
       this.camera.updateProjectionMatrix();
-      this.renderer.setSize(W, H, false);
+      this.renderer.outputEncoding = THREE.sRGBEncoding;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.15;
+    this.renderer.setSize(W, H, false);
     }
   }
 
@@ -1162,6 +1177,7 @@ class DetailTwin3D {
       this.bodyMat.color.setHex(col.body);
       this.accentMat.color.setHex(col.accent);
       this.accentMat.emissive.setHex(col.accent);
+      this.accentMat.emissiveIntensity = 0.12;
       this.glowLight.color.setHex(col.glow);
       if (this.pedestalMesh) this.pedestalMesh.material.color.setHex(col.accent);
     }
@@ -1187,7 +1203,7 @@ class DetailTwin3D {
 
     if (!config.demoMode) this.targetRPM = this.relayOn && deviceOnline ? 360 : 0;
     // Update HUD overlay chips
-    setText('twin-motor-title', `Motor ${motorIdx + 1} — Telemetry Augmented Twin`);
+    setText('twin-motor-title', `Motor ${motorIdx + 1} — Motor View`);
     setText('twin-hud-temp', motor.sensors.tempOk ? `${this.tempC.toFixed(1)} °C` : 'FAULT');
     setText('twin-hud-vib', motor.sensors.vibOk ? `${this.vibRms.toFixed(3)} g` : 'FAULT');
     setText('twin-hud-rpm', config.demoMode ? `${Math.round(this.targetRPM)} RPM · DEMO` : 'RPM unavailable');
@@ -1515,10 +1531,10 @@ function createOrUpdateChart(canvasId, label, color, data, labels) {
         label: label,
         data: data,
         borderColor: color,
-        backgroundColor: color.replace(')', ', 0.08)').replace('rgb(', 'rgba(').replace('#', ''),
+        backgroundColor: color + '18',
         borderWidth: 2,
         fill: true,
-        tension: 0.4,
+        tension: 0.15,
         pointRadius: 2,
         pointHoverRadius: 5,
       }]
@@ -1541,12 +1557,12 @@ function createOrUpdateChart(canvasId, label, color, data, labels) {
       scales: {
         x: {
           grid: { color: 'rgba(0,212,255,0.04)', drawBorder: false },
-          ticks: { color: '#4a6080', maxTicksLimit: 6, font: { family: 'JetBrains Mono', size: 10 } },
+          ticks: { color: '#a5b6cf', maxTicksLimit: 6, font: { family: 'JetBrains Mono', size: 10 } },
           border: { color: 'rgba(0,212,255,0.08)' }
         },
         y: {
           grid: { color: 'rgba(0,212,255,0.04)', drawBorder: false },
-          ticks: { color: '#4a6080', font: { family: 'JetBrains Mono', size: 10 } },
+          ticks: { color: '#a5b6cf', font: { family: 'JetBrains Mono', size: 10 } },
           border: { color: 'rgba(0,212,255,0.08)' }
         }
       }
@@ -1559,7 +1575,7 @@ function getChartData(motorIdx, field) {
   const slice = motorReadings.slice(-config.chartRange);
   return {
     labels: slice.map(r => new Date(r.ts).toLocaleTimeString()),
-    data: slice.map(r => r[field] ?? 0)
+    data: slice.map(r => r[field] ?? null)
   };
 }
 
@@ -1714,6 +1730,7 @@ async function pollESP32() {
       if (model) { model.targetRPM = 0; model.currentRPM = 0; model.relayOn = false; model.vibrationAmp = 0; }
     }
     renderReport();
+    updateFailureWarning();
     for (const id of ['twin-hud-relay','detail-accel-x','detail-accel-y','detail-accel-z','twin-hud-rpm','twin-hud-temp','twin-hud-vib','detail-state','detail-relay','detail-health','detail-temp-c','detail-vib-rms','detail-vib-peak']) setText(id, 'Disconnected');
     updateConnectionUI(false);
     setText('report-summary', 'HARDWARE disconnected: ' + err.message + '. Readings unavailable; retrying automatically.');
@@ -1730,6 +1747,7 @@ function processMotorData() {
     if (!readings[i]) readings[i] = [];
     readings[i].push({
       mode: config.demoMode ? "DEMO" : "HARDWARE",
+      health: motorData[i].health,
       state: motorData[i].state, relayOn: motorData[i].relayOn,
       ts: now,
       temp: s.tempOk ? s.tempC : null,
@@ -1741,6 +1759,7 @@ function processMotorData() {
   }
   saveReadings();
   renderReport();
+  updateFailureWarning();
 
   // Auto-create incidents for warnings/critical states
   for (let i = 0; i < 3; i++) {
@@ -1833,13 +1852,13 @@ function initOverviewCharts() {
     scales: {
       x: {
         grid: { color: 'rgba(0,212,255,0.04)', drawBorder: false },
-        ticks: { color: '#4a6080', maxTicksLimit: 5, font: { family: 'JetBrains Mono', size: 10 } },
+        ticks: { color: '#a5b6cf', maxTicksLimit: 5, font: { family: 'JetBrains Mono', size: 10 } },
         border: { color: 'rgba(0,212,255,0.08)' }
       },
       y: {
-        title: { display: true, text: ylabel, color: '#4a6080', font: { size: 10 } },
+        title: { display: true, text: ylabel, color: '#a5b6cf', font: { size: 10 } },
         grid: { color: 'rgba(0,212,255,0.04)', drawBorder: false },
-        ticks: { color: '#4a6080', font: { family: 'JetBrains Mono', size: 10 } },
+        ticks: { color: '#a5b6cf', font: { family: 'JetBrains Mono', size: 10 } },
         border: { color: 'rgba(0,212,255,0.08)' }
       }
     }
@@ -1859,7 +1878,7 @@ function initOverviewCharts() {
           backgroundColor: colors[i] + '15',
           borderWidth: 2,
           fill: false,
-          tension: 0.4,
+          tension: 0.15,
           pointRadius: 2,
         }))
       },
@@ -1877,7 +1896,7 @@ function initOverviewCharts() {
           backgroundColor: colors[i] + '15',
           borderWidth: 2,
           fill: false,
-          tension: 0.4,
+          tension: 0.15,
           pointRadius: 2,
         }))
       },
@@ -1895,7 +1914,7 @@ function initOverviewCharts() {
           backgroundColor: colors[i] + '15',
           borderWidth: 2,
           fill: false,
-          tension: 0.4,
+          tension: 0.15,
           pointRadius: 2,
         }))
       },
@@ -1910,31 +1929,13 @@ function updateOverviewCharts() {
   if (typeof Chart === 'undefined') return;
   initOverviewCharts();
   if (!overviewCharts.temp || !overviewCharts.vib || !overviewCharts.health) return;
-  if (!motorData[0] && !motorData[1] && !motorData[2]) return;
-
-  const now = new Date().toLocaleTimeString();
-  const chartsList = [overviewCharts.temp, overviewCharts.vib, overviewCharts.health];
-  const getters = [
-    i => motorData[i]?.sensors?.tempC ?? null,
-    i => motorData[i]?.sensors?.vibRms ?? null,
-    i => motorData[i]?.health ?? null,
-  ];
-  const maxPts = config ? config.chartRange : 20;
-
-  try {
-    chartsList.forEach((chart, ci) => {
-      if (!chart) return;
-      chart.data.labels.push(now);
-      if (chart.data.labels.length > maxPts) chart.data.labels.shift();
-      for (let i = 0; i < 3; i++) {
-        chart.data.datasets[i].data.push(getters[ci](i));
-        if (chart.data.datasets[i].data.length > maxPts) chart.data.datasets[i].data.shift();
-      }
-      chart.update('none');
-    });
-  } catch (err) {
-    console.warn('Overview chart update error:', err);
-  }
+  const fields = ['temp','vibRms','health'];
+  [overviewCharts.temp,overviewCharts.vib,overviewCharts.health].forEach((chart,ci)=>{
+    const samples=(readings[0] || []).slice(-config.chartRange);
+    chart.data.labels=samples.map(r=>new Date(r.ts).toLocaleTimeString());
+    for(let i=0;i<3;i++) chart.data.datasets[i].data=(readings[i] || []).slice(-config.chartRange).map(r=>r[fields[ci]] ?? null);
+    chart.update('none');
+  });
 }
 
 function updateOverviewPage() {
@@ -2642,6 +2643,7 @@ function restartPolling() {
   updateOverviewPage();
   renderReport();
   updateConnectionUI(false);
+  updateFailureWarning();
   updateAlertBadge();
   if (config.demoMode) {
     pollInterval = setInterval(() => {
@@ -2861,4 +2863,56 @@ function validIncident(x) {
  ['temperature','vibRms','vibPeak'].every(k => x[k] == null || Number.isFinite(x[k])) &&
  ['faultReason','faultEvidence','possibleCauses','techNotes'].every(k => x[k] == null || typeof x[k] === 'string') &&
  (!x.thresholds || Object.values(x.thresholds).every(v => typeof v === 'boolean' || Number.isFinite(v)));
+}
+
+// Sound is opt-in because browsers require a user gesture to unlock audio.
+let alarmAudio = null;
+let alarmSoundEnabled = false;
+let lastAlarmSignature = '';
+async function toggleAlarmSound() {
+  try {
+    if (!alarmAudio) alarmAudio = new (window.AudioContext || window.webkitAudioContext)();
+    await alarmAudio.resume();
+    alarmSoundEnabled = !alarmSoundEnabled;
+    const button = document.getElementById('sound-toggle');
+    button.textContent = alarmSoundEnabled ? 'Sound ON — click to mute' : 'Enable warning sound';
+    button.setAttribute('aria-pressed', String(alarmSoundEnabled));
+    if (alarmSoundEnabled) { playAlarm(); lastAlarmSignature = ''; updateFailureWarning(); }
+  } catch { showToast('Audio unavailable in this browser. Visual warnings remain active.', 'warn'); }
+}
+function playAlarm() {
+  if (!alarmSoundEnabled || !alarmAudio || alarmAudio.state !== 'running') return;
+  for (let n=0;n<3;n++) {
+    const oscillator=alarmAudio.createOscillator(), gain=alarmAudio.createGain();
+    const start=alarmAudio.currentTime+n*.28;
+    oscillator.frequency.value=740;
+    gain.gain.setValueAtTime(0,start);
+    gain.gain.linearRampToValueAtTime(.12,start+.02);
+    gain.gain.exponentialRampToValueAtTime(.001,start+.18);
+    oscillator.connect(gain);gain.connect(alarmAudio.destination);
+    oscillator.start(start);oscillator.stop(start+.2);
+    oscillator.onended=()=>{oscillator.disconnect();gain.disconnect();};
+  }
+}
+function updateFailureWarning() {
+  const faults=motorData.filter(m=>m && ['WARNING','CRITICAL','SENSOR_FAULT','LATCHED_OFF'].includes(m.state));
+  const banner=document.getElementById('failure-warning');
+  if (!banner) return;
+  banner.hidden=!faults.length;
+  banner.textContent=faults.length ? (config.demoMode ? 'DEMO — simulated warning: ' : 'HARDWARE WARNING: ') + faults.map(m=>`Motor ${m.id}: ${m.state.replaceAll('_',' ')}. ${m.faultReason || 'Inspect sensor readings and motor before continuing.'}`).join(' | ') : '';
+  const signature=(config.demoMode?'demo:':'hardware:')+faults.map(m=>m.id+':'+m.state).join(',');
+  if(faults.length && signature!==lastAlarmSignature)playAlarm();
+  lastAlarmSignature=signature;
+}
+function generateReport() {
+  const mode=config.demoMode ? 'DEMO — simulated data' : 'HARDWARE';
+  const esc=escapeHtml;
+  const rows=motorData.map((m,i)=>{
+    const samples=readings[i] || [];
+    const temperatures=samples.map(r=>r.temp).filter(Number.isFinite);
+    const peak=temperatures.length ? Math.max(...temperatures).toFixed(1)+' °C' : 'No history';
+    return `<tr><td>Motor ${i+1}</td><td>${m?esc(m.state):'Unavailable'}</td><td>${m?m.health+'%':'—'}</td><td>${m?.sensors.tempOk?m.sensors.tempC.toFixed(1)+' °C':'Unavailable'}</td><td>${m?.sensors.vibOk?m.sensors.vibRms.toFixed(3)+' g':'Unavailable'}</td><td>${peak}</td><td>${observedRunMinutes(i)} min</td></tr>`;
+  }).join('');
+  document.getElementById('print-report').innerHTML=`<h1>Motor condition & maintenance report</h1><p><strong>${mode}</strong> · Generated ${esc(new Date().toLocaleString())}</p><p>Connection: ${config.demoMode?'Demo':deviceOnline?'Online':'Offline'} · Last hardware response: ${lastSeenTime?esc(lastSeenTime.toLocaleString()):'None'}</p><table><thead><tr><th>Motor</th><th>Condition</th><th>Health</th><th>Temperature</th><th>Vibration RMS</th><th>Peak recorded temp</th><th>Observed ON time</th></tr></thead><tbody>${rows}</tbody></table><h2>Maintenance actions</h2><p>For temperature warnings inspect cooling and load. For vibration warnings inspect mounting and bearings. Sensor faults require wiring/sensor checks. Investigate latched shutdowns before resetting the ESP32.</p><h2>Recorded incidents (${incidents.length})</h2>${incidents.slice(0,30).map(x=>`<p>${esc(x.startTime)} — Motor ${x.motorId}: ${esc(x.severity)}. ${esc(x.faultReason || '')}</p>`).join('') || '<p>No incidents in this mode.</p>'}<h2>Life-cycle interpretation</h2><p>Observed relay-on time covers retained samples only (up to 500 per motor), excluding long gaps. It is not lifetime usage. Remaining life and actual RPM are unavailable with this firmware. Health is a threshold-based indicator. Historical samples may predate the current connection.</p>`;
+  document.getElementById('report-dialog').showModal();
 }

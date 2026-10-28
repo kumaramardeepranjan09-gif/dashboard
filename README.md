@@ -27,3 +27,10 @@ Validated here: demo startup, disconnected hardware, no automatic simulation fal
 CSV reading export now supports the stored reading structure. Offline fleet health shows data unavailable even while viewing motor details. Relay labels and acceleration readings clear on disconnect. Motor housing no longer auto-orbits; drag to inspect it. Threshold displays use firmware telemetry in hardware mode. Incident shutdown evidence uses reported relay state. Invalid backup records are rejected before import.
 
 Expanded Chromium checks passed using mocked firmware-shaped HTTP responses: successful hardware reception, relay-off animation stop, stale-data rejection, reconnection, and CSV download. These are software tests, not physical hardware validation.
+
+## Reports, sound and hardware connection
+Use **Generate Report / PDF** at the top of the dashboard, then **Print / Save as PDF**. The report includes the active mode, connection, latest readings, peak recorded temperature, observed run time, incidents and maintenance guidance. CSV exports the retained raw readings.
+
+Click **Enable warning sound** once per browser session. A short alarm plays for new warning/failure states; click again to mute. Visual warnings remain active without sound. Demo alarms are labelled simulated. Browser/device volume and audio permission affect sound; the dashboard is not a replacement for ESP32 local protection.
+
+Click **Connect real hardware** for the full connection checklist. Set Wi-Fi credentials in firmware, upload, read its IP from Serial Monitor at 115200 baud, verify `/api/status` in the same network, then enter that IP in Settings and disable Demo. No physical RPM measurement is available in the existing firmware.

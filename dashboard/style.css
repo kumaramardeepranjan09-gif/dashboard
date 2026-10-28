@@ -1474,3 +1474,18 @@ input, select, textarea { font-family: inherit; }
 #report-motors article { padding:16px; background:#17263b; border-radius:12px; }
 @media(max-width:800px) { #report-motors {grid-template-columns:1fr;} }
 .motor-card {box-shadow:0 12px 35px #0003!important;}
+
+/* Focused monitoring controls and reports */
+.monitor-actions{display:flex;flex-wrap:wrap;gap:12px;margin:18px 0}
+#failure-warning{padding:18px 22px;margin-bottom:18px;border:2px solid #ff7777;border-radius:12px;background:#411c26;color:#fff;font-weight:600;line-height:1.6}
+#failure-warning[hidden]{display:none}
+dialog{background:#132035;color:#edf3ff;border:1px solid #57718f;border-radius:18px;padding:28px;width:min(1000px,94vw);max-height:88vh;overflow:auto;line-height:1.7}
+dialog::backdrop{background:#030a16cc}dialog li{margin:12px 0}dialog ol{padding-left:24px}
+.report-controls{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px}
+#print-report table{border-collapse:collapse;width:100%;margin:20px 0;font-size:13px}#print-report th,#print-report td{padding:10px;border:1px solid #64748b;text-align:left}
+.twin-hotspot-layer,.pedestal-glow{display:none!important}
+.digital-twin-stage{background:radial-gradient(ellipse at 50% 45%,#20354d 0%,#0b1523 70%)!important;min-height:400px}
+.twin-mode-btn[data-mode="thermal"],.twin-mode-btn[data-mode="xray"]{display:none}
+.chart-container{min-height:260px}.chart-subtitle{color:#adbed3!important}
+#report-motors{font-size:13px}.report-panel{padding:18px}.report-panel h2{font-size:18px}
+@media print{body *{visibility:hidden!important}#report-dialog,#report-dialog *{visibility:visible!important}#report-dialog{position:absolute;inset:0;width:100%;max-height:none;overflow:visible;border:0;background:white;color:black;padding:0}#report-dialog .report-controls{display:none!important}#print-report table{font-size:10px}dialog::backdrop{display:none}}
