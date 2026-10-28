@@ -1507,3 +1507,5 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #60cf
 .report-panel{background:transparent;border:0;padding:0 0 14px}.report-panel>h2,.report-panel>.reading-note,#report-motors{display:none}
 .monitor-actions .btn{min-height:42px}.motor-card{border-color:#31445e!important}.stat-card{box-shadow:none!important}
 @media(max-width:700px){.connection-panel input{width:100%;min-width:0}.connection-panel .btn{flex:1}.twin-controls{flex-wrap:wrap}.monitor-actions{gap:8px}.connection-panel>div{width:100%}}
+
+.life-chip{padding:10px 16px;color:#a9e4d5;font-size:13px;border-top:1px solid #304558;background:#10252b}

@@ -382,7 +382,7 @@ class Motor3D {
     // ── Cast iron stator body ──
     this.bodyMat = new THREE.MeshStandardMaterial({
       color: 0x2563eb,
-      emissive: 0x0f2d59,
+      emissive: 0x000000,
       metalness: 0.2,
       roughness: 0.35,
     });
@@ -394,8 +394,8 @@ class Motor3D {
     });
 
     this.finMat = new THREE.MeshStandardMaterial({
-      color: 0x0284c7,
-      emissive: 0x032840,
+      color: 0x226b75,
+      emissive: 0x000000,
       metalness: 0.2,
       roughness: 0.4,
     });
@@ -942,7 +942,7 @@ class DetailTwin3D {
   buildModel() {
     this.bodyMat = new THREE.MeshStandardMaterial({
       color: 0x2563eb,
-      emissive: 0x0f2d59,
+      emissive: 0x000000,
       metalness: 0.2,
       roughness: 0.35,
     });
@@ -954,8 +954,8 @@ class DetailTwin3D {
     });
 
     this.finMat = new THREE.MeshStandardMaterial({
-      color: 0x0284c7,
-      emissive: 0x032840,
+      color: 0x226b75,
+      emissive: 0x000000,
       metalness: 0.2,
       roughness: 0.4,
     });
@@ -1030,6 +1030,24 @@ class DetailTwin3D {
       this.rotorGroup.add(blade);
     }
 
+    const baseMat = new THREE.MeshStandardMaterial({color:0x172c3a,metalness:0.55,roughness:0.48});
+    const base = new THREE.Mesh(new THREE.BoxGeometry(5.3,0.18,3.1),baseMat);
+    base.position.set(0,-1.65,0); this.rootGroup.add(base);
+    for (const x of [-0.8,0.8]) for(const z of [-0.8,0.8]) {
+      const foot=new THREE.Mesh(new THREE.BoxGeometry(0.65,0.45,0.65),this.bodyMat);
+      foot.position.set(x,-1.35,z);this.rootGroup.add(foot);
+    }
+    for (const x of [-2.25,2.25]) for(const z of [-1.2,1.2]) {
+      const bolt=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.08,6),this.chromeMat);
+      bolt.position.set(x,-1.51,z);this.rootGroup.add(bolt);
+    }
+    for(let i=0;i<8;i++) {
+      const angle=i*Math.PI/4;
+      const bolt=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,.08,6).rotateZ(Math.PI/2),this.chromeMat);
+      bolt.position.set(1.46,Math.cos(angle)*.95,Math.sin(angle)*.95);this.rootGroup.add(bolt);
+    }
+    const grid=new THREE.GridHelper(18,24,0x304653,0x243541);
+    grid.position.y=-1.77;this.scene.add(grid);
     // 6. Grid Pedestal
     const pedGeo = new THREE.RingGeometry(1.8, 2.6, 40).rotateX(-Math.PI / 2);
     this.pedestalMesh = new THREE.Mesh(pedGeo, new THREE.MeshBasicMaterial({
@@ -1167,7 +1185,7 @@ class DetailTwin3D {
       this.glowLight.color.setHSL((0.58 - tNorm * 0.58), 1.0, 0.5);
     } else {
       const colMap = {
-        'NORMAL':       { body: 0x1e3352, accent: 0x00d4ff, glow: 0x00d4ff },
+        'NORMAL':       { body: 0x12606a, accent: 0x5a9299, glow: 0x419aa8 },
         'WARNING':      { body: 0x4a3500, accent: 0xffb300, glow: 0xffb300 },
         'CRITICAL':     { body: 0x5a1212, accent: 0xff3d3d, glow: 0xff3d3d },
         'SENSOR_FAULT': { body: 0x3d1a5a, accent: 0xc084fc, glow: 0xc084fc },
@@ -1630,6 +1648,8 @@ function stepDemoSimulation() {
   // Build fake motor data
   motorData = demoState.map((ds, i) => ({
     id: i + 1,
+    runtimeHours: Number(observedRunMinutes(i)) / 60,
+    serviceLifeHours: 200,
     state: ds.state,
     relayOn: ds.relay,
     latchedOff: ds.state === 'CRITICAL' || ds.state === 'LATCHED_OFF',
@@ -1688,6 +1708,8 @@ async function pollESP32() {
 
     motorData = data.motors.map((m, i) => ({
       id: m.id,
+      runtimeHours: Number.isFinite(m.runtime_hours) ? m.runtime_hours : null,
+      serviceLifeHours: Number.isFinite(m.service_life_hours) ? m.service_life_hours : 200,
       state: m.state,
       relayOn: m.relay_on,
       latchedOff: m.latched_off,
@@ -1761,6 +1783,7 @@ function processMotorData() {
   }
   saveReadings();
   renderReport();
+  updateLifeCards();
   updateFailureWarning();
 
   // Auto-create incidents for warnings/critical states
@@ -1788,6 +1811,7 @@ function processMotorData() {
 // ─── CONNECTION UI ──────────────────────────────────────────
 // ============================================================
 function updateConnectionUI(online) {
+  updateLifeCards();
   const offlineBanner = document.getElementById('offline-banner');
   const demoBanner    = document.getElementById('demo-banner');
   const connDot       = document.getElementById('conn-dot');
@@ -2843,7 +2867,7 @@ function renderReport() {
   setText('report-summary', mode + ' · Updated ' + new Date().toLocaleTimeString() + '');
   const el = document.getElementById('report-motors');
   if (!el) return;
-  el.innerHTML = motorData.map((m,i) => m ? `<article><h3>Motor ${i+1}</h3><p>${escapeHtml(m.state)} · Health ${m.health}%</p><p>${m.relayOn ? 'Relay energized' : 'Relay off'} · RPM unavailable</p><p>${m.state === 'NORMAL' ? 'Routine inspection' : 'Inspection required — see report'}</p><p>Observed ON time: ${observedRunMinutes(i)} min</p></article>` : '<article>Awaiting hardware readings</article>').join('');
+  el.innerHTML = motorData.map((m,i) => m ? `<article><h3>Motor ${i+1}</h3><p>${escapeHtml(m.state)} · Health ${m.health}%</p><p>${m.relayOn ? 'Relay energized' : 'Relay off'} · RPM unavailable</p><p>${m.state === 'NORMAL' ? 'Routine inspection' : 'Inspection required — see report'}</p><p>Service life: ${lifeLabel(m)}</p></article>` : '<article>Awaiting hardware readings</article>').join('');
 }
 function exportTelemetry(motorIndex = null) {
   const rows = ['mode,motor,timestamp,state,relay_on,temperature_c,vibration_rms_g,vibration_peak_g'];
@@ -2923,9 +2947,9 @@ function generateReport(motorIndex = null) {
     const samples=readings[i] || [];
     const temperatures=samples.map(r=>r.temp).filter(Number.isFinite);
     const peak=temperatures.length ? Math.max(...temperatures).toFixed(1)+' °C' : 'No history';
-    return `<tr><td>Motor ${i+1}</td><td>${m?esc(m.state):'Unavailable'}</td><td>${m?m.health+'%':'—'}</td><td>${m?.sensors.tempOk?m.sensors.tempC.toFixed(1)+' °C':'Unavailable'}</td><td>${m?.sensors.vibOk?m.sensors.vibRms.toFixed(3)+' g':'Unavailable'}</td><td>${peak}</td><td>${observedRunMinutes(i)} min</td></tr>`;
+    return `<tr><td>Motor ${i+1}</td><td>${m?esc(m.state):'Unavailable'}</td><td>${m?m.health+'%':'—'}</td><td>${m?.sensors.tempOk?m.sensors.tempC.toFixed(1)+' °C':'Unavailable'}</td><td>${m?.sensors.vibOk?m.sensors.vibRms.toFixed(3)+' g':'Unavailable'}</td><td>${peak}</td><td>${observedRunMinutes(i)} min<br>${esc(lifeLabel(m))}</td></tr>`;
   }).join('');
-  document.getElementById('print-report').innerHTML=`<h1>${reportMotorIndex === null ? "Fleet" : "Motor " + (reportMotorIndex + 1)} condition & maintenance report</h1><p><strong>${mode}</strong> · Generated ${esc(new Date().toLocaleString())}</p><p>Connection: ${config.demoMode?'Demo':deviceOnline?'Online':'Offline'} · Last hardware response: ${lastSeenTime?esc(lastSeenTime.toLocaleString()):'None'}</p><table><thead><tr><th>Motor</th><th>Condition</th><th>Health</th><th>Temperature</th><th>Vibration RMS</th><th>Peak recorded temp</th><th>Observed ON time</th></tr></thead><tbody>${rows}</tbody></table>${motorData.map((m,i)=>reportMotorIndex !== null && i !== reportMotorIndex ? "" : `<section class="failure-evidence"><h2>Motor ${i+1} — Failure reason</h2><p>${esc(failureReason(m))}</p><p><strong>Device evidence:</strong> ${esc(m?.faultEvidence || "No additional evidence reported.")}</p><p><strong>Possible causes:</strong> ${esc(m && m.state !== "NORMAL" ? "Cooling/load problems, loose mounting, bearing wear or sensor/wiring faults. Physical inspection is required to establish the cause." : "No current fault diagnosis.")}</p></section>`).join("")}<h2>Maintenance actions</h2><p>For temperature warnings inspect cooling and load. For vibration warnings inspect mounting and bearings. Sensor faults require wiring/sensor checks. Investigate latched shutdowns before resetting the ESP32.</p><h2>Recorded incidents (${selectedIncidents.length})</h2>${selectedIncidents.slice(0,30).map(x=>`<p>${esc(x.startTime)} — Motor ${x.motorId}: ${esc(x.severity)}. ${esc(x.faultReason || '')}</p>`).join('') || '<p>No incidents in this mode.</p>'}<h2>Life-cycle interpretation</h2><p>Observed relay-on time covers retained samples only (up to 500 per motor), excluding long gaps. It is not lifetime usage. Remaining life and actual RPM are unavailable with this firmware. Health is a threshold-based indicator. Historical samples may predate the current connection.</p>`;
+  document.getElementById('print-report').innerHTML=`<h1>${reportMotorIndex === null ? "Fleet" : "Motor " + (reportMotorIndex + 1)} condition & maintenance report</h1><p><strong>${mode}</strong> · Generated ${esc(new Date().toLocaleString())}</p><p>Connection: ${config.demoMode?'Demo':deviceOnline?'Online':'Offline'} · Last hardware response: ${lastSeenTime?esc(lastSeenTime.toLocaleString()):'None'}</p><table><thead><tr><th>Motor</th><th>Condition</th><th>Health</th><th>Temperature</th><th>Vibration RMS</th><th>Peak recorded temp</th><th>Observed ON time</th></tr></thead><tbody>${rows}</tbody></table>${motorData.map((m,i)=>reportMotorIndex !== null && i !== reportMotorIndex ? "" : `<section class="failure-evidence"><h2>Motor ${i+1} — Failure reason</h2><p>${esc(failureReason(m))}</p><p><strong>Device evidence:</strong> ${esc(m?.faultEvidence || "No additional evidence reported.")}</p><p><strong>Possible causes:</strong> ${esc(m && m.state !== "NORMAL" ? "Cooling/load problems, loose mounting, bearing wear or sensor/wiring faults. Physical inspection is required to establish the cause." : "No current fault diagnosis.")}</p></section>`).join("")}<h2>Maintenance actions</h2><p>For temperature warnings inspect cooling and load. For vibration warnings inspect mounting and bearings. Sensor faults require wiring/sensor checks. Investigate latched shutdowns before resetting the ESP32.</p><h2>Recorded incidents (${selectedIncidents.length})</h2>${selectedIncidents.slice(0,30).map(x=>`<p>${esc(x.startTime)} — Motor ${x.motorId}: ${esc(x.severity)}. ${esc(x.faultReason || '')}</p>`).join('') || '<p>No incidents in this mode.</p>'}<h2>Life-cycle interpretation</h2><p>Observed relay-on time covers retained samples only (up to 500 per motor), excluding long gaps. It is not lifetime usage. The 200-hour service budget decreases with ESP32 relay-on time; it is a maintenance schedule, not a failure prediction. Actual RPM is unavailable. Health is a threshold-based indicator. Historical samples may predate the current connection.</p>`;
   const dialog = document.getElementById('report-dialog');
   if (!dialog.open) dialog.showModal();
 }
@@ -2966,3 +2990,11 @@ function disconnectHardware() {
   showToast('Monitoring paused. This does not switch off the physical motors.', 'info');
 }
 function useDemo() {config.demoMode=true;saveConfig();restartPolling();}
+
+function lifeLabel(m) {
+  if (!m || !Number.isFinite(m.runtimeHours)) return 'Service life unavailable — update ESP32 firmware';
+  return Math.max(0,m.serviceLifeHours-m.runtimeHours).toFixed(2)+' / '+m.serviceLifeHours+' h remaining';
+}
+function updateLifeCards() {
+  motorData.forEach((m,i)=>setText('motor-life-'+i,lifeLabel(m)));
+}

@@ -14,6 +14,7 @@
 #include <WebServer.h>
 #include <ArduinoJson.h>
 #include <math.h>
+#include <Preferences.h>
 
 // =============================================================================
 // ─── USER CONFIGURATION ──────────────────────────────────────────────────────
@@ -25,6 +26,10 @@ const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";  // <-- Change this
 
 // --- Web Server ---
 const uint16_t HTTP_PORT = 80;
+// Active buzzer driven through a transistor (see README), HIGH = sound.
+const uint8_t BUZZER_PIN = 23;
+const bool BUZZER_ENABLED = true;
+const double SERVICE_LIFE_HOURS = 200.0;
 
 // --- Relay Polarity ---
 // Set to true if your relay module activates on LOW signal (most common)
@@ -151,15 +156,40 @@ unsigned long lastSampleMs    = 0;
 unsigned long lastWifiRetryMs = 0;
 bool          wifiConnected   = false;
 
+Preferences runtimeStore;
+uint64_t runtimeMs[3] = {0,0,0};
+uint32_t runtimeTick = 0;
+uint32_t runtimeSavedAt = 0;
+bool runtimePersistenceReady = false;
+void accountRuntime() {
+  const uint32_t now = millis();
+  const uint32_t elapsed = now - runtimeTick;
+  runtimeTick = now;
+  for (uint8_t i=0;i<3;i++) if (motors[i].relayOn) runtimeMs[i] += elapsed;
+}
+void saveRuntime() {
+  if (!runtimePersistenceReady) return;
+  for (uint8_t i=0;i<3;i++) { char key[8]; snprintf(key,sizeof(key),"motor%u",i+1); runtimeStore.putULong64(key,runtimeMs[i]); }
+  runtimeSavedAt = millis();
+}
+void updateBuzzer() {
+  bool fault = false;
+  for (uint8_t i=0;i<3;i++) fault |= motors[i].state == STATE_CRITICAL || motors[i].state == STATE_SENSOR_FAULT || motors[i].state == STATE_LATCHED_OFF;
+  digitalWrite(BUZZER_PIN, BUZZER_ENABLED && fault ? HIGH : LOW);
+}
+
 // =============================================================================
 // ─── RELAY HELPERS ────────────────────────────────────────────────────────────
 // =============================================================================
 
 void setRelay(uint8_t motorIdx, bool activate) {
   if (motorIdx > 2) return;
+  accountRuntime();
+  bool wasRunning = motors[motorIdx].relayOn;
   bool pinLevel = RELAY_ACTIVE_LOW ? !activate : activate;
   digitalWrite(RELAY_PIN[motorIdx], pinLevel ? HIGH : LOW);
   motors[motorIdx].relayOn = activate;
+  if (wasRunning && !activate) saveRuntime();
   Serial.printf("[RELAY] Motor %d relay %s\n", motorIdx + 1, activate ? "ON" : "OFF");
 }
 
@@ -499,8 +529,9 @@ String stateToString(MotorState s) {
 
 void handleGetStatus() {
   addCORSHeaders();
+  accountRuntime();
 
-  StaticJsonDocument<4096> doc;
+  StaticJsonDocument<6144> doc;
   doc["firmware"] = "SmartPredict v1.0";
   doc["uptime_ms"] = millis();
   doc["wifi_connected"] = wifiConnected;
@@ -511,6 +542,10 @@ void handleGetStatus() {
     JsonObject m = arr.createNestedObject();
     MotorStatus& ms = motors[i];
     m["id"]          = i + 1;
+    m["runtime_hours"] = (double)runtimeMs[i] / 3600000.0;
+    m["service_life_hours"] = SERVICE_LIFE_HOURS;
+    m["remaining_hours"] = max(0.0, SERVICE_LIFE_HOURS - (double)runtimeMs[i] / 3600000.0);
+    m["runtime_persistent"] = runtimePersistenceReady;
     m["state"]       = stateToString(ms.state);
     m["relay_on"]    = ms.relayOn;
     m["latched_off"] = ms.latchedOff;
@@ -680,6 +715,11 @@ void setup() {
   Serial.println("Verify calibration before using for real motor protection.");
   Serial.println("========================================");
 
+  digitalWrite(BUZZER_PIN, LOW);
+  pinMode(BUZZER_PIN, OUTPUT);
+  runtimePersistenceReady = runtimeStore.begin("motor-runtime", false);
+  for (uint8_t i=0;i<3;i++) { char key[8]; snprintf(key,sizeof(key),"motor%u",i+1); runtimeMs[i] = runtimePersistenceReady ? runtimeStore.getULong64(key,0) : 0; }
+  runtimeTick = millis();
   // --- Relay setup: safe state first (motors OFF) ---
   for (uint8_t i = 0; i < 3; i++) {
     pinMode(RELAY_PIN[i], OUTPUT);
@@ -772,6 +812,12 @@ void setup() {
 // =============================================================================
 
 void loop() {
+  accountRuntime();
+  if (millis() - runtimeSavedAt >= 60000) saveRuntime();
+  const bool nowConnected = WiFi.status() == WL_CONNECTED;
+  if (nowConnected && !wifiConnected) server.begin();
+  wifiConnected = nowConnected;
+  updateBuzzer();
   // Handle HTTP requests
   if (wifiConnected) {
     server.handleClient();
@@ -786,8 +832,7 @@ void loop() {
       server.begin();
       Serial.println("[WiFi] Reconnected.");
     } else {
-      connectWiFi();
-      if (wifiConnected) server.begin();
+      WiFi.reconnect();
     }
   }
 
@@ -797,6 +842,7 @@ void loop() {
     for (uint8_t i = 0; i < 3; i++) {
       sampleMotor(i);
       updateMotorState(i);
+      updateBuzzer();
     }
   }
 }

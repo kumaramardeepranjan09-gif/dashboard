@@ -22,18 +22,21 @@ await page.evaluate(()=>{
 // Exercise firmware-shaped responses without physical hardware.
 await page.evaluate(async()=>{
  clearInterval(pollInterval);
- const payload={motors:[1,2,3].map(id=>({id,state:'NORMAL',relay_on:true,health:98,fault_reason:'',fault_evidence:'',sensors:{timestamp:2000,temp_ok:true,temp_c:32,vib_ok:true,vib_rms:.1,vib_peak:.2,accel_x:0,accel_y:0,accel_z:1},thresholds:{temp_warn:60,temp_crit:80,vib_rms_warn:.5,vib_rms_crit:1.5,vib_peak_warn:1,vib_peak_crit:3}}))};
+ const payload={motors:[1,2,3].map(id=>({id,runtime_hours:12.5,service_life_hours:200,state:'NORMAL',relay_on:true,health:98,fault_reason:'',fault_evidence:'',sensors:{timestamp:2000,temp_ok:true,temp_c:32,vib_ok:true,vib_rms:.1,vib_peak:.2,accel_x:0,accel_y:0,accel_z:1},thresholds:{temp_warn:60,temp_crit:80,vib_rms_warn:.5,vib_rms_crit:1.5,vib_peak_warn:1,vib_peak_crit:3}}))};
  config.demoMode=false;config.esp32Url='http://mock-device';
  incidents=[];alerts=[];readings={0:[],1:[],2:[]};
  const originalFetch=window.fetch;
  window.fetch=async()=>({ok:true,json:async()=>structuredClone(payload)});
  await pollESP32();
  if(!deviceOnline || motorData[0].sensors.tempC!==32)throw Error('Hardware response failed');
+ if(lifeLabel(motorData[0]) !== '187.50 / 200 h remaining')throw Error('Firmware runtime not used');
+ payload.motors[0].runtime_hours=201;
  showMotorDetail(0);
  if(detailTwinInstance.targetRPM!==360)throw Error('Relay animation not synchronized');
  payload.motors.forEach(m=>{m.relay_on=false;m.sensors.timestamp++});
  await pollESP32();
  if(detailTwinInstance.targetRPM!==0)throw Error('Motor did not stop');
+ if(!lifeLabel(motorData[0]).startsWith('0.00'))throw Error('Service life went negative');
  lastTelemetryChange=Date.now()-30000;
  await pollESP32();
  if(deviceOnline || motorData.some(Boolean))throw Error('Stale readings accepted');
