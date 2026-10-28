@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartPredict — Predictive Maintenance Dashboard</title>
+  <!-- Chart.js Local (100% offline & zero latency) -->
+  <script src="chart.min.js"></script>
+  <!-- Three.js Local for WebGL 3D Digital Twin (100% offline & zero latency) -->
+  <script src="three.min.js"></script>
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- App Styles -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ============================================================
+     APP SHELL
+     ============================================================ -->
+<div class="app-shell">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </div>
+      <div>
+        <div class="logo-text">SmartPredict</div>
+        <div class="logo-sub">3D Digital Twin & Predictive Health</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Operations</div>
+
+      <div class="nav-item active" data-page="overview">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </span>
+        <span>Fleet Overview</span>
+      </div>
+
+      <div class="nav-section-title">Digital Twin Motors</div>
+
+      <div class="nav-item" data-page="motor-detail" data-motor="0" id="nav-motor-1">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </span>
+        <span>Motor 01 Twin</span>
+      </div>
+      <div class="nav-item" data-page="motor-detail" data-motor="1" id="nav-motor-2">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </span>
+        <span>Motor 02 Twin</span>
+      </div>
+      <div class="nav-item" data-page="motor-detail" data-motor="2" id="nav-motor-3">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </span>
+        <span>Motor 03 Twin</span>
+      </div>
+
+      <div class="nav-section-title">Diagnostics</div>
+
+      <div class="nav-item" data-page="alerts">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </span>
+        <span>Alert Center</span>
+        <span class="nav-badge" id="nav-alert-badge" style="display:none">0</span>
+      </div>
+
+      <div class="nav-item" data-page="history">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </span>
+        <span>Failure History</span>
+        <span class="nav-badge warn" id="nav-hist-badge" style="display:none">0</span>
+      </div>
+
+      <div class="nav-section-title">System</div>
+
+      <div class="nav-item" data-page="settings">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+        </span>
+        <span>Configuration</span>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="connection-badge">
+        <div class="dot demo" id="conn-dot"></div>
+        <span id="conn-text">DEMO MODE</span>
+      </div>
+      <div id="last-seen" style="font-size:10px;"></div>
+      <div class="storage-tag">Browser LocalStorage Active</div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN AREA ── -->
+  <main class="main-area">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="topbar-title" id="topbar-page-title">Fleet Overview</span>
+        <span class="topbar-subtitle">ESP32 3-Axis Telemetry & Continuous Health AI</span>
+      </div>
+      <div class="topbar-right">
+        <div class="system-health-pill healthy" id="sys-health-pill">
+          <span class="pill-dot"></span>
+          <span id="sys-health-text">FLEET STATUS: OPTIMAL</span>
+        </div>
+        <div class="time-container">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span class="topbar-time mono" id="topbar-time">--:--:--</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <div class="content-area">
+
+      <!-- ── DEVICE OFFLINE BANNER ── -->
+      <div class="offline-banner" id="offline-banner">
+        <div class="icon">📡</div>
+        <div>
+          <h3>⚠️ DEVICE OFFLINE — ESP32 Not Reachable</h3>
+          <p>Cannot connect to the ESP32 at the configured address. Check Wi-Fi, verify the IP, and ensure the device is powered.</p>
+          <div class="last-seen" id="last-seen-banner">Last contact: never</div>
+          <div style="margin-top:4px;font-size:11px;color:var(--text-muted);">
+            The dashboard is in <b>DEMO mode</b> — no real sensor data is displayed. Motor protection continues locally on the ESP32.
+          </div>
+        </div>
+      </div>
+
+      <!-- ── DEMO BANNER ── -->
+      <div class="demo-banner visible" id="demo-banner">
+        <div class="icon">🎭</div>
+        <span>DEMO MODE</span>
+        <p>— Simulated data only. Set your ESP32 IP in Settings to switch to live data. Configure ESP32_URL first.</p>
+      </div>
+
+      <!-- ============================================================
+           PAGE: OVERVIEW
+           ============================================================ -->
+      <section class="page active" id="page-overview">
+
+        <section class="report-panel"><h2>Motor health & maintenance</h2><p id="report-summary">Select Demo or Hardware in Settings.</p><p>3D rotation in Hardware mode indicates relay state; physical rotation and RPM require a speed sensor.</p><button class="btn btn-outline" onclick="exportTelemetry()">Export reading history CSV</button><div id="report-motors"></div></section>
+        <!-- Summary stats -->
+        <div class="stats-bar">
+          <div class="stat-card">
+            <div class="stat-icon-wrapper success">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <div class="stat-info">
+              <div class="stat-label">Running Motors</div>
+              <div class="stat-value running" id="stat-running">—</div>
+              <div class="stat-sub">of 3 active drives</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon-wrapper warning">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div class="stat-info">
+              <div class="stat-label">Telemetry Warnings</div>
+              <div class="stat-value warning" id="stat-warnings">—</div>
+              <div class="stat-sub">attention required</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon-wrapper danger">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div class="stat-info">
+              <div class="stat-label">Critical Shutdowns</div>
+              <div class="stat-value critical" id="stat-critical">—</div>
+              <div class="stat-sub">safety trip latched</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon-wrapper purple">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+            </div>
+            <div class="stat-info">
+              <div class="stat-label">Sensor Faults</div>
+              <div class="stat-value fault" id="stat-faults">—</div>
+              <div class="stat-sub">signal lost / disconnected</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Motor cards grid -->
+        <div class="motors-grid">
+
+          <!-- Motor 1 Card -->
+          <div class="motor-card" id="motor-card-0" title="Click to open Motor 1 Digital Twin">
+            <div class="motor-card-header">
+              <div class="motor-title-group">
+                <span class="motor-number-chip">M1</span>
+                <div>
+                  <div class="motor-number">MOTOR 01</div>
+                  <div class="motor-name">Motor 1</div>
+                </div>
+              </div>
+              <span class="motor-status-badge badge-normal" id="m0-state-badge">NORMAL</span>
+            </div>
+
+            <!-- Enhanced 3D Canvas Stage -->
+            <div class="motor-3d-container">
+              <div class="motor-3d-wrapper">
+                <canvas class="motor-3d-canvas" id="motor-canvas-0"></canvas>
+              </div>
+              <div class="motor-3d-overlay">
+                <span class="motor-3d-hint">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                  Interactive 3D
+                </span>
+                <span class="motor-3d-rpm-tag" id="m0-rpm-tag">0 RPM</span>
+              </div>
+              <div class="pedestal-glow"></div>
+            </div>
+
+            <!-- Telemetry Metrics Grid -->
+            <div class="motor-metrics">
+              <div class="metric">
+                <div class="metric-top">
+                  <span class="metric-icon">🌡️</span>
+                  <span class="metric-label">Temp</span>
+                </div>
+                <div class="metric-value" id="m0-temp">—<span class="metric-unit"> °C</span></div>
+                <div class="metric-mini-bar"><div class="mini-bar-fill" id="m0-temp-bar" style="width:30%"></div></div>
+              </div>
+              <div class="metric">
+                <div class="metric-top">
+                  <span class="metric-icon">〰️</span>
+                  <span class="metric-label">Vib RMS</span>
+                </div>
+                <div class="metric-value" id="m0-vibrms">—<span class="metric-unit"> g</span></div>
+                <div class="metric-mini-bar"><div class="mini-bar-fill" id="m0-vib-bar" style="width:20%"></div></div>
+              </div>
+              <div class="metric">
+                <div class="metric-top">
+                  <span class="metric-icon">⚡</span>
+                  <span class="metric-label">Peak Vib</span>
+                </div>
+                <div class="metric-value" id="m0-vibpeak">—<span class="metric-unit"> g</span></div>
+                <div class="metric-mini-bar"><div class="mini-bar-fill" id="m0-peak-bar" style="width:25%"></div></div>
+              </div>
+            </div>
+
+            <!-- Health & Safety Row -->
+            <div class="health-safety-row">
+              <div class="health-bar-container">
+                <div class="health-label">
+                  <span>Health Score</span>
+                  <span class="health-score-text" id="m0-health-pct">—</span>
+                </div>
+                <div class="health-bar">
+                  <div class="health-bar-fill" id="m0-health-bar" style="width:0%"></div>
+                </div>
+              </div>
+              <button class="quick-inspect-btn" onclick="showMotorDetail(0); event.stopPropagation();">
+                Inspect 3D Twin →
+              </button>
+            </div>
+
+            <!-- Footer -->
+            <div class="motor-footer">
+              <div class="relay-indicator">
+                <div class="relay-dot relay-off" id="m0-relay-dot"></div>
+                <span id="m0-relay-text">RELAY OFF</span>
+              </div>
+              <div id="m0-sensors" class="sensor-chips">LM35 — MPU6050 —</div>
+              <div id="m0-last-update" class="last-update-chip">—</div>
+            </div>
+          </div>
+
+          <!-- Motor 2 Card -->
+          <div class="motor-card" id="motor-card-1" title="Click to open Motor 2 Digital Twin">
+            <div class="motor-card-header">
+              <div class="motor-title-group">
+                <span class="motor-number-chip">M2</span>
+                <div>
+                  <div class="motor-number">MOTOR 02</div>
+                  <div class="motor-name">Motor 2</div>
+                </div>
+              </div>
+              <span class="motor-status-badge badge-normal" id="m1-state-badge">NORMAL</span>
+            </div>
+
+            <!-- Enhanced 3D Canvas Stage -->
+            <div class="motor-3d-container">
+              <div class="motor-3d-wrapper">
+                <canvas class="motor-3d-canvas" id="motor-canvas-1"></canvas>
+              </div>
+              <div class="motor-3d-overlay">
+                <span class="motor-3d-hint">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                  Interactive 3D
+                </span>
+                <span class="motor-3d-rpm-tag" id="m1-rpm-tag">0 RPM</span>
+              </div>
+              <div class="pedestal-glow"></div>
+            </div>
+
+            <!-- Telemetry Metrics Grid -->
+            <div class="motor-metrics">
+              <div class="metric">
+                <div class="metric-top">
+                  <span class="metric-icon">🌡️</span>
+                  <span class="metric-label">Temp</span>
+                </div>
+                <div class="metric-value" id="m1-temp">—<span class="metric-unit"> °C</span></div>
+                <div class="metric-mini-bar"><div class="mini-bar-fill" id="m1-temp-bar" style="width:30%"></div></div>
+              </div>
+              <div class="metric">
+                <div class="metric-top">
+                  <span class="metric-icon">〰️</span>
+                  <span class="metric-label">Vib RMS</span>
+                </div>
+                <div class="metric-value" id="m1-vibrms">—<span class="metric-unit"> g</span></div>
+                <div class="metric-mini-bar"><div class="mini-bar-fill" id="m1-vib-bar" style="width:20%"></div></div>
+              </div>
+              <div class="metric">
+                <div class="metric-top">
+                  <span class="metric-icon">⚡</span>
+                  <span class="metric-label">Peak Vib</span>
+                </div>
+                <div class="metric-value" id="m1-vibpeak">—<span class="metric-unit"> g</span></div>
+                <div class="metric-mini-bar"><div class="mini-bar-fill" id="m1-peak-bar" style="width:25%"></div></div>
+              </div>
+            </div>
+
+            <!-- Health & Safety Row -->
+            <div class="health-safety-row">
+              <div class="health-bar-container">
+                <div class="health-label">
+                  <span>Health Score</span>
+                  <span class="health-score-text" id="m1-health-pct">—</span>
+                </div>
+                <div class="health-bar">
+                  <div class="health-bar-fill" id="m1-health-bar" style="width:0%"></div>
+                </div>
+              </div>
+              <button class="quick-inspect-btn" onclick="showMotorDetail(1); event.stopPropagation();">
+                Inspect 3D Twin →
+              </button>
+            </div>
+
+            <!-- Footer -->
+            <div class="motor-footer">
+              <div class="relay-indicator">
+                <div class="relay-dot relay-off" id="m1-relay-dot"></div>
+                <span id="m1-relay-text">RELAY OFF</span>
+              </div>
+              <div id="m1-sensors" class="sensor-chips">LM35 — MPU6050 —</div>
+              <div id="m1-last-update" class="last-update-chip">—</div>
+            </div>
+          </div>
+
+          <!-- Motor 3 Card -->
+          <div class="motor-card" id="motor-card-2" title="Click to open Motor 3 Digital Twin">
+            <div class="motor-card-header">
+              <div class="motor-title-group">
+                <span class="motor-number-chip">M3</span>
+                <div>
+                  <div class="motor-number">MOTOR 03</div>
+                  <div class="motor-name">Motor 3</div>
+                </div>
+              </div>
+              <span class="motor-status-badge badge-normal" id="m2-state-badge">NORMAL</span>
+            </div>
+
+            <!-- Enhanced 3D Canvas Stage -->
+            <div class="motor-3d-container">
+              <div class="motor-3d-wrapper">
+                <canvas class="motor-3d-canvas" id="motor-canvas-2"></canvas>
+              </div>
+              <div class="motor-3d-overlay">
+                <span class="motor-3d-hint">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                  Interactive 3D
+                </span>
+                <span class="motor-3d-rpm-tag" id="m2-rpm-tag">0 RPM</span>
+              </div>
+              <div class="pedestal-glow"></div>
+            </div>
+
+            <!-- Telemetry Metrics Grid -->
+            <div class="motor-metrics">
+              <div class="metric">
+                <div class="metric-top">
+                  <span class="metric-icon">🌡️</span>
+                  <span class="metric-label">Temp</span>
+                </div>
+                <div class="metric-value" id="m2-temp">—<span class="metric-unit"> °C</span></div>
+                <div class="metric-mini-bar"><div class="mini-bar-fill" id="m2-temp-bar" style="width:30%"></div></div>
+              </div>
+              <div class="metric">
+                <div class="metric-top">
+                  <span class="metric-icon">〰️</span>
+                  <span class="metric-label">Vib RMS</span>
+                </div>
+                <div class="metric-value" id="m2-vibrms">—<span class="metric-unit"> g</span></div>
+                <div class="metric-mini-bar"><div class="mini-bar-fill" id="m2-vib-bar" style="width:20%"></div></div>
+              </div>
+              <div class="metric">
+                <div class="metric-top">
+                  <span class="metric-icon">⚡</span>
+                  <span class="metric-label">Peak Vib</span>
+                </div>
+                <div class="metric-value" id="m2-vibpeak">—<span class="metric-unit"> g</span></div>
+                <div class="metric-mini-bar"><div class="mini-bar-fill" id="m2-peak-bar" style="width:25%"></div></div>
+              </div>
+            </div>
+
+            <!-- Health & Safety Row -->
+            <div class="health-safety-row">
+              <div class="health-bar-container">
+                <div class="health-label">
+                  <span>Health Score</span>
+                  <span class="health-score-text" id="m2-health-pct">—</span>
+                </div>
+                <div class="health-bar">
+                  <div class="health-bar-fill" id="m2-health-bar" style="width:0%"></div>
+                </div>
+              </div>
+              <button class="quick-inspect-btn" onclick="showMotorDetail(2); event.stopPropagation();">
+                Inspect 3D Twin →
+              </button>
+            </div>
+
+            <!-- Footer -->
+            <div class="motor-footer">
+              <div class="relay-indicator">
+                <div class="relay-dot relay-off" id="m2-relay-dot"></div>
+                <span id="m2-relay-text">RELAY OFF</span>
+              </div>
+              <div id="m2-sensors" class="sensor-chips">LM35 — MPU6050 —</div>
+              <div id="m2-last-update" class="last-update-chip">—</div>
+            </div>
+          </div>
+
+        </div><!-- /motors-grid -->
+
+        <!-- Quick overview charts -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:8px;">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div><div class="chart-title">Temperature Trend</div><div class="chart-subtitle">All motors — °C</div></div>
+            </div>
+            <div class="chart-container"><canvas id="overview-chart-temp"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <div><div class="chart-title">Vibration RMS</div><div class="chart-subtitle">All motors — g</div></div>
+            </div>
+            <div class="chart-container"><canvas id="overview-chart-vib"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <div><div class="chart-title">Health Scores</div><div class="chart-subtitle">All motors — 0–100</div></div>
+            </div>
+            <div class="chart-container"><canvas id="overview-chart-health"></canvas></div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============================================================
+           PAGE: MOTOR DETAIL
+           ============================================================ -->
+      <section class="page" id="page-motor-detail">
+
+        <div class="section-header">
+          <div>
+            <div class="section-title"><span class="icon">🔧</span><span id="detail-title">Motor 1 Details</span></div>
+            <div class="section-sub">Live readings, trends, incidents, and maintenance notes</div>
+          </div>
+          <div class="section-actions">
+            <button class="btn btn-outline btn-sm" onclick="showPrevMotor()">← Prev</button>
+            <button class="btn btn-outline btn-sm" onclick="showNextMotor()">Next →</button>
+            <button class="btn btn-outline btn-sm" onclick="navigateTo('overview')">↩ Overview</button>
+          </div>
+        </div>
+
+        <!-- Motor selector tabs -->
+        <div class="tab-bar">
+          <button class="tab-btn active" id="tab-btn-0" onclick="showMotorDetail(0)">Motor 1</button>
+          <button class="tab-btn" id="tab-btn-1" onclick="showMotorDetail(1)">Motor 2</button>
+          <button class="tab-btn" id="tab-btn-2" onclick="showMotorDetail(2)">Motor 3</button>
+        </div>
+
+        <div id="detail-content">
+
+          <!-- ── HERO 3D DIGITAL TWIN EXPLORER ── -->
+          <div class="digital-twin-card">
+            <div class="digital-twin-header">
+              <div class="digital-twin-title-group">
+                <div class="twin-badge">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                  3D DIGITAL TWIN
+                </div>
+                <h3 class="twin-title" id="twin-motor-title">Motor 1 — Telemetry Augmented Twin</h3>
+              </div>
+              <div class="twin-controls">
+                <div class="twin-mode-selector">
+                  <button class="twin-mode-btn active" data-mode="solid" title="Realistic Industrial Casting">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                    Solid
+                  </button>
+                  <button class="twin-mode-btn" data-mode="thermal" title="Thermal Heat Gradient">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+                    Thermal
+                  </button>
+                  <button class="twin-mode-btn" data-mode="wireframe" title="X-Ray Internal Structure">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    X-Ray
+                  </button>
+                  <button class="twin-mode-btn" data-mode="exploded" title="Exploded Assembly View">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    Exploded
+                  </button>
+                </div>
+                <button class="btn btn-outline btn-sm" id="btn-reset-view" title="Reset Camera">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                  Reset
+                </button>
+              </div>
+            </div>
+
+            <div class="digital-twin-stage" id="detail-twin-stage">
+              <canvas id="detail-twin-canvas" class="detail-twin-canvas"></canvas>
+
+              <!-- Interactive 3D Hotspot Markers -->
+              <div class="twin-hotspot-layer">
+                <div class="twin-hotspot" id="hotspot-temp" style="top:28%; left:45%;" title="Stator Core & DS18B20 Temp Probe">
+                  <span class="hotspot-pulse"></span>
+                  <span class="hotspot-label">🌡️ Temp Probe</span>
+                </div>
+                <div class="twin-hotspot" id="hotspot-vib" style="top:62%; left:65%;" title="Front Bearing & MPU6050 Vib IMU">
+                  <span class="hotspot-pulse"></span>
+                  <span class="hotspot-label">〰️ Vib IMU</span>
+                </div>
+                <div class="twin-hotspot" id="hotspot-shaft" style="top:52%; left:85%;" title="Output Shaft & Coupling">
+                  <span class="hotspot-pulse"></span>
+                  <span class="hotspot-label">⚙️ Shaft</span>
+                </div>
+                <div class="twin-hotspot" id="hotspot-fan" style="top:52%; left:16%;" title="Rear Cooling Impeller Fan">
+                  <span class="hotspot-pulse"></span>
+                  <span class="hotspot-label">🌀 Cooling Fan</span>
+                </div>
+              </div>
+
+              <!-- Live Telemetry HUD Overlay in 3D -->
+              <div class="twin-hud-overlay">
+                <div class="hud-chip">
+                  <span class="hud-label">CORE TEMP</span>
+                  <span class="hud-val" id="twin-hud-temp">--.- °C</span>
+                </div>
+                <div class="hud-chip">
+                  <span class="hud-label">VIB RMS</span>
+                  <span class="hud-val" id="twin-hud-vib">-.--- g</span>
+                </div>
+                <div class="hud-chip">
+                  <span class="hud-label">SHAFT SPEED</span>
+                  <span class="hud-val" id="twin-hud-rpm">1800 RPM</span>
+                </div>
+                <div class="hud-chip">
+                  <span class="hud-label">RELAY CONTACTOR</span>
+                  <span class="hud-val relay-active" id="twin-hud-relay">ENERGIZED</span>
+                </div>
+              </div>
+
+              <div class="twin-drag-prompt">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                Drag to orbit 360° • Scroll to zoom
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+            <div class="chart-card">
+              <div class="chart-header"><div class="chart-title">🌡️ Temperature History</div></div>
+              <div class="chart-container"><canvas id="detail-chart-temp"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-header"><div class="chart-title">📳 Vibration RMS History</div></div>
+              <div class="chart-container"><canvas id="detail-chart-vib"></canvas></div>
+            </div>
+          </div>
+
+          <!-- Detail panels -->
+          <div class="detail-grid">
+            <div class="detail-panel">
+              <div class="detail-panel-title">📊 Live Readings</div>
+              <div class="reading-row"><span class="reading-label">Temperature</span><span class="reading-value" id="detail-temp-c">—</span></div>
+              <div class="reading-row"><span class="reading-label">Vibration RMS</span><span class="reading-value" id="detail-vib-rms">—</span></div>
+              <div class="reading-row"><span class="reading-label">Vibration Peak</span><span class="reading-value" id="detail-vib-peak">—</span></div>
+              <div class="reading-row"><span class="reading-label">Accel X</span><span class="reading-value" id="detail-accel-x">—</span></div>
+              <div class="reading-row"><span class="reading-label">Accel Y</span><span class="reading-value" id="detail-accel-y">—</span></div>
+              <div class="reading-row"><span class="reading-label">Accel Z</span><span class="reading-value" id="detail-accel-z">—</span></div>
+              <div class="reading-row"><span class="reading-label">Health Score</span><span class="reading-value" id="detail-health">—</span></div>
+              <div class="reading-row"><span class="reading-label">State</span><span class="reading-value" id="detail-state">—</span></div>
+              <div class="reading-row"><span class="reading-label">Relay</span><span class="reading-value" id="detail-relay">—</span></div>
+            </div>
+            <div class="detail-panel">
+              <div class="detail-panel-title">🎯 Active Thresholds <span class="uncalibrated-tag">UNCALIBRATED</span></div>
+              <div class="reading-row"><span class="reading-label">Temp Warning</span><span class="reading-value" id="detail-th-tempwarn">—</span></div>
+              <div class="reading-row"><span class="reading-label">Temp Critical</span><span class="reading-value" id="detail-th-tempcrit">—</span></div>
+              <div class="reading-row"><span class="reading-label">Vib RMS Warning</span><span class="reading-value" id="detail-th-vibwarn">—</span></div>
+              <div class="reading-row"><span class="reading-label">Vib RMS Critical</span><span class="reading-value" id="detail-th-vibcrit">—</span></div>
+              <div style="margin-top:16px;">
+                <div class="detail-panel-title" style="margin-bottom:8px;">⚠️ Active Fault</div>
+                <div class="evidence-box" id="detail-fault-reason" style="display:none;font-size:13px;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Motor incidents -->
+          <div style="margin-top:24px;">
+            <div class="section-header">
+              <div class="section-title"><span class="icon">📋</span>Previous Incidents</div>
+            </div>
+            <div id="detail-incidents">
+              <div class="empty-state"><span class="icon">✅</span>No incidents recorded for this motor.</div>
+            </div>
+          </div>
+
+        </div><!-- /detail-content -->
+      </section>
+
+      <!-- ============================================================
+           PAGE: ALERT CENTER
+           ============================================================ -->
+      <section class="page" id="page-alerts">
+
+        <div class="section-header">
+          <div>
+            <div class="section-title"><span class="icon">🚨</span>Alert Center</div>
+            <div class="section-sub">Warning and critical alerts with acknowledgement</div>
+          </div>
+          <div class="section-actions">
+            <button class="btn btn-outline btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+          </div>
+        </div>
+
+        <div class="alert-filter-bar">
+          <select class="filter-select" id="filter-motor">
+            <option value="all">All Motors</option>
+            <option value="1">Motor 1</option>
+            <option value="2">Motor 2</option>
+            <option value="3">Motor 3</option>
+          </select>
+          <select class="filter-select" id="filter-sev">
+            <option value="all">All Severities</option>
+            <option value="WARNING">Warning</option>
+            <option value="CRITICAL">Critical</option>
+            <option value="SENSOR_FAULT">Sensor Fault</option>
+          </select>
+        </div>
+
+        <div class="alert-list" id="alerts-container">
+          <div class="empty-state"><span class="icon">🔕</span>No alerts recorded yet.</div>
+        </div>
+
+      </section>
+
+      <!-- ============================================================
+           PAGE: FAILURE HISTORY
+           ============================================================ -->
+      <section class="page" id="page-history">
+
+        <div class="section-header">
+          <div>
+            <div class="section-title"><span class="icon">📋</span>Failure History</div>
+            <div class="section-sub">Complete incident log with evidence, root causes, and maintenance records</div>
+          </div>
+          <div class="section-actions">
+            <button class="btn btn-outline btn-sm" id="btn-export-json">⬇ JSON Backup</button>
+            <button class="btn btn-outline btn-sm" id="btn-export-csv">⬇ CSV Export</button>
+            <button class="btn btn-outline btn-sm" id="btn-import-json">⬆ Import JSON</button>
+            <button class="btn btn-danger btn-sm" id="btn-clear-history">🗑 Clear All</button>
+          </div>
+        </div>
+
+        <div class="alert-filter-bar">
+          <select class="filter-select" id="hist-filter-motor">
+            <option value="all">All Motors</option>
+            <option value="1">Motor 1</option>
+            <option value="2">Motor 2</option>
+            <option value="3">Motor 3</option>
+          </select>
+          <select class="filter-select" id="hist-filter-sev">
+            <option value="all">All Severities</option>
+            <option value="WARNING">Warning</option>
+            <option value="CRITICAL">Critical</option>
+            <option value="SENSOR_FAULT">Sensor Fault</option>
+          </select>
+          <input type="date" class="filter-select" id="hist-filter-date" />
+        </div>
+
+        <!-- Storage notice -->
+        <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 16px;margin-bottom:16px;font-size:12px;color:var(--text-muted);">
+          ℹ️ <strong>Storage notice:</strong> Incident history is saved in this browser's localStorage. 
+          It is <em>not</em> shared between devices, not backed up automatically, and will be lost if you clear browser data.
+          <strong>Export JSON regularly to back up your history.</strong>
+        </div>
+
+        <div id="history-container">
+          <div class="empty-state"><span class="icon">📋</span>No incidents recorded yet. Motor health is excellent!</div>
+        </div>
+
+      </section>
+
+      <!-- ============================================================
+           PAGE: SETTINGS
+           ============================================================ -->
+      <section class="page" id="page-settings">
+
+        <div class="section-header">
+          <div>
+            <div class="section-title"><span class="icon">⚙️</span>Settings</div>
+            <div class="section-sub">Configure ESP32 connection, thresholds, and data retention</div>
+          </div>
+          <div class="section-actions">
+            <button class="btn btn-primary" id="btn-save-settings">💾 Save Settings</button>
+          </div>
+        </div>
+
+        <!-- Notice -->
+        <div style="background:rgba(255,179,0,0.08);border:1px solid var(--warning);border-radius:var(--r-sm);padding:12px 16px;margin-bottom:24px;font-size:13px;">
+          <strong style="color:var(--warning);">⚠️ Threshold Notice:</strong> All thresholds are <strong>UNCALIBRATED</strong>. 
+          You must verify safe operating limits for your specific motors, load conditions, and environment 
+          before relying on these thresholds for real motor protection. Dashboard settings 
+          <em>cannot</em> override a critical shutdown latched by the ESP32 firmware.
+        </div>
+
+        <div class="settings-grid">
+
+          <!-- Connection -->
+          <div class="settings-card">
+            <div class="settings-title">📡 ESP32 Connection</div>
+            <div class="form-group">
+              <label class="form-label">ESP32 Device URL</label>
+              <input type="url" class="form-input" id="setting-esp32-url" placeholder="http://192.168.1.100" />
+              <div class="form-hint">The dashboard polls <code>/api/status</code> at this URL. Must be on the same local network. HTTPS pages cannot poll plain HTTP ESP32 devices — open this dashboard from a local file or from the ESP32 directly.</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Refresh Interval (seconds)</label>
+              <input type="number" class="form-input" id="setting-interval" min="1" max="60" value="3" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                <input type="checkbox" id="setting-demo" style="width:16px;height:16px;" />
+                Force Demo Mode (simulated data)
+              </label>
+              <div class="form-hint">When enabled, simulated data is shown regardless of device availability. Disable once your ESP32 is online.</div>
+            </div>
+          </div>
+
+          <!-- Chart & Storage -->
+          <div class="settings-card">
+            <div class="settings-title">📊 Chart & Storage</div>
+            <div class="form-group">
+              <label class="form-label">Chart Data Points</label>
+              <input type="number" class="form-input" id="setting-chart-range" min="5" max="200" value="20" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Data Retention (days)</label>
+              <input type="number" class="form-input" id="setting-retention" min="1" max="365" value="30" />
+              <div class="form-hint">Old readings beyond this age are pruned. Fault incidents are never auto-deleted.</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Export / Restore</label>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn btn-outline btn-sm" onclick="exportJSON()">⬇ JSON</button>
+                <button class="btn btn-outline btn-sm" onclick="exportCSV()">⬇ CSV</button>
+                <button class="btn btn-outline btn-sm" onclick="importJSON()">⬆ Import</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Thresholds — Motor 1 -->
+          <div class="settings-card">
+            <div class="settings-title">🔧 Motor 1 Thresholds <span class="uncalibrated-tag">UNCALIBRATED</span></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div class="form-group"><label class="form-label">Temp Warning (°C)</label><input class="form-input" type="number" id="th-0-tempwarn" step="0.5" /></div>
+              <div class="form-group"><label class="form-label">Temp Critical (°C)</label><input class="form-input" type="number" id="th-0-tempcrit" step="0.5" /></div>
+              <div class="form-group"><label class="form-label">Vib RMS Warning (g)</label><input class="form-input" type="number" id="th-0-vibrmswarn" step="0.01" /></div>
+              <div class="form-group"><label class="form-label">Vib RMS Critical (g)</label><input class="form-input" type="number" id="th-0-vibrmscrit" step="0.01" /></div>
+              <div class="form-group"><label class="form-label">Peak Warning (g)</label><input class="form-input" type="number" id="th-0-vibpeakwarn" step="0.01" /></div>
+              <div class="form-group"><label class="form-label">Peak Critical (g)</label><input class="form-input" type="number" id="th-0-vibpeakcrit" step="0.01" /></div>
+            </div>
+          </div>
+
+          <!-- Thresholds — Motor 2 -->
+          <div class="settings-card">
+            <div class="settings-title">🔧 Motor 2 Thresholds <span class="uncalibrated-tag">UNCALIBRATED</span></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div class="form-group"><label class="form-label">Temp Warning (°C)</label><input class="form-input" type="number" id="th-1-tempwarn" step="0.5" /></div>
+              <div class="form-group"><label class="form-label">Temp Critical (°C)</label><input class="form-input" type="number" id="th-1-tempcrit" step="0.5" /></div>
+              <div class="form-group"><label class="form-label">Vib RMS Warning (g)</label><input class="form-input" type="number" id="th-1-vibrmswarn" step="0.01" /></div>
+              <div class="form-group"><label class="form-label">Vib RMS Critical (g)</label><input class="form-input" type="number" id="th-1-vibrmscrit" step="0.01" /></div>
+              <div class="form-group"><label class="form-label">Peak Warning (g)</label><input class="form-input" type="number" id="th-1-vibpeakwarn" step="0.01" /></div>
+              <div class="form-group"><label class="form-label">Peak Critical (g)</label><input class="form-input" type="number" id="th-1-vibpeakcrit" step="0.01" /></div>
+            </div>
+          </div>
+
+          <!-- Thresholds — Motor 3 -->
+          <div class="settings-card" style="grid-column:1/-1;">
+            <div class="settings-title">🔧 Motor 3 Thresholds <span class="uncalibrated-tag">UNCALIBRATED</span></div>
+            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;">
+              <div class="form-group"><label class="form-label">Temp Warn (°C)</label><input class="form-input" type="number" id="th-2-tempwarn" step="0.5" /></div>
+              <div class="form-group"><label class="form-label">Temp Crit (°C)</label><input class="form-input" type="number" id="th-2-tempcrit" step="0.5" /></div>
+              <div class="form-group"><label class="form-label">VibRMS Warn (g)</label><input class="form-input" type="number" id="th-2-vibrmswarn" step="0.01" /></div>
+              <div class="form-group"><label class="form-label">VibRMS Crit (g)</label><input class="form-input" type="number" id="th-2-vibrmscrit" step="0.01" /></div>
+              <div class="form-group"><label class="form-label">Peak Warn (g)</label><input class="form-input" type="number" id="th-2-vibpeakwarn" step="0.01" /></div>
+              <div class="form-group"><label class="form-label">Peak Crit (g)</label><input class="form-input" type="number" id="th-2-vibpeakcrit" step="0.01" /></div>
+            </div>
+          </div>
+
+        </div><!-- /settings-grid -->
+
+        <div style="margin-top:24px;text-align:center;">
+          <button class="btn btn-primary" id="btn-save-settings-bottom" onclick="saveSettings()">💾 Save All Settings</button>
+        </div>
+
+      </section>
+
+    </div><!-- /content-area -->
+  </main>
+</div><!-- /app-shell -->
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<!-- App JS -->
+<script src="app.js"></script>
+
+</body>
+</html>

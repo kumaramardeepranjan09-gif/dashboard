@@ -1,0 +1,56 @@
+const {chromium}=require('playwright');
+const assert=require('node:assert/strict');
+(async()=>{
+const browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox','--enable-unsafe-swiftshader']});
+const page=await browser.newPage();const errors=[];
+page.on('pageerror',e=>errors.push(e.message));
+await page.goto('http://127.0.0.1:8080/');
+await page.waitForTimeout(1500);
+assert.match(await page.locator('#conn-text').innerText(),/DEMO/);
+assert.equal(await page.evaluate(()=>motorData.filter(Boolean).length),3);
+await page.evaluate(()=>{config.demoMode=false;restartPolling()});
+await page.waitForTimeout(4500);
+assert.equal(await page.evaluate(()=>config.demoMode),false);
+assert.equal(await page.evaluate(()=>motorData.filter(Boolean).length),0);
+await page.evaluate(()=>{
+ const valid={motors:[1,2,3].map(id=>({id,state:'NORMAL',relay_on:true,health:98,sensors:{timestamp:1000,temp_ok:true,temp_c:32,vib_ok:true,vib_rms:.1,vib_peak:.2},thresholds:{}}))};
+ validateTelemetry(valid);
+ let rejected=false;try{validateTelemetry({motors:[]})}catch{rejected=true}if(!rejected)throw Error('invalid data accepted');
+ valid.motors[0].sensors.temp_c=-999;validateTelemetry(valid);if(valid.motors[0].sensors.temp_ok)throw Error('invalid sensor accepted');
+ config.demoMode=true;restartPolling();showMotorDetail(0);navigateTo('history');navigateTo('settings');navigateTo('overview');
+});
+// Exercise firmware-shaped responses without physical hardware.
+await page.evaluate(async()=>{
+ clearInterval(pollInterval);
+ const payload={motors:[1,2,3].map(id=>({id,state:'NORMAL',relay_on:true,health:98,fault_reason:'',fault_evidence:'',sensors:{timestamp:2000,temp_ok:true,temp_c:32,vib_ok:true,vib_rms:.1,vib_peak:.2,accel_x:0,accel_y:0,accel_z:1},thresholds:{temp_warn:60,temp_crit:80,vib_rms_warn:.5,vib_rms_crit:1.5,vib_peak_warn:1,vib_peak_crit:3}}))};
+ config.demoMode=false;config.esp32Url='http://mock-device';
+ incidents=[];alerts=[];readings={0:[],1:[],2:[]};
+ const originalFetch=window.fetch;
+ window.fetch=async()=>({ok:true,json:async()=>structuredClone(payload)});
+ await pollESP32();
+ if(!deviceOnline || motorData[0].sensors.tempC!==32)throw Error('Hardware response failed');
+ showMotorDetail(0);
+ if(detailTwinInstance.targetRPM!==360)throw Error('Relay animation not synchronized');
+ payload.motors.forEach(m=>{m.relay_on=false;m.sensors.timestamp++});
+ await pollESP32();
+ if(detailTwinInstance.targetRPM!==0)throw Error('Motor did not stop');
+ lastTelemetryChange=Date.now()-30000;
+ await pollESP32();
+ if(deviceOnline || motorData.some(Boolean))throw Error('Stale readings accepted');
+ if(document.getElementById('sys-health-text').textContent.includes('OPTIMAL'))throw Error('Offline reports healthy');
+ payload.motors.forEach(m=>m.sensors.timestamp++);
+ await pollESP32();
+ if(!deviceOnline)throw Error('Reconnection failed');
+ window.fetch=originalFetch;
+});
+const downloadPromise=page.waitForEvent('download');
+await page.evaluate(()=>exportTelemetry());
+const download=await downloadPromise;
+const stream=await download.createReadStream();let csv='';for await(const chunk of stream)csv+=chunk;
+assert.match(csv,/HARDWARE,1,/);
+assert.match(csv,/temperature_c/);
+assert.deepEqual(errors,[]);
+await page.screenshot({path:'/workspace/dashboard/dashboard-check.png',fullPage:true});
+console.log('PASS: hardware response, relay stop, stale rejection, recovery, CSV download; demo startup, hardware disconnect, no automatic demo fallback, schema validation, invalid sensor, navigation; no uncaught browser errors.');
+await browser.close();
+})().catch(e=>{console.error(e);process.exitCode=1});
