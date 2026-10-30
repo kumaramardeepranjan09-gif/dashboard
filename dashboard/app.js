@@ -1553,35 +1553,36 @@ function createOrUpdateChart(canvasId, label, color, data, labels) {
         borderWidth: 2,
         fill: true,
         tension: 0.15,
-        pointRadius: 2,
+        pointRadius: 0,
+          pointHoverRadius: 4,
         pointHoverRadius: 5,
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      animation: { duration: 300 },
+      animation: { duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 650, easing: 'easeOutQuart' },
       interaction: { intersect: false, mode: 'index' },
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: '#0d1526',
-          borderColor: 'rgba(0,212,255,0.2)',
+          backgroundColor: '#111413',
+          borderColor: 'rgba(255,255,255,0.16)',
           borderWidth: 1,
           titleColor: '#e8eef8',
-          bodyColor: '#8fa8c8',
+          bodyColor: '#929792',
         }
       },
       scales: {
         x: {
-          grid: { color: 'rgba(0,212,255,0.04)', drawBorder: false },
-          ticks: { color: '#a5b6cf', maxTicksLimit: 6, font: { family: 'JetBrains Mono', size: 10 } },
-          border: { color: 'rgba(0,212,255,0.08)' }
+          grid: { color: 'rgba(255,255,255,0.06)', drawBorder: false },
+          ticks: { color: '#929792', maxTicksLimit: 6, font: { family: 'JetBrains Mono', size: 10 } },
+          border: { color: 'rgba(255,255,255,0.08)' }
         },
         y: {
-          grid: { color: 'rgba(0,212,255,0.04)', drawBorder: false },
-          ticks: { color: '#a5b6cf', font: { family: 'JetBrains Mono', size: 10 } },
-          border: { color: 'rgba(0,212,255,0.08)' }
+          grid: { color: 'rgba(255,255,255,0.06)', drawBorder: false },
+          ticks: { color: '#929792', font: { family: 'JetBrains Mono', size: 10 } },
+          border: { color: 'rgba(255,255,255,0.08)' }
         }
       }
     }
@@ -1860,37 +1861,37 @@ function initOverviewCharts() {
   const chartOpts = (ylabel) => ({
     responsive: true,
     maintainAspectRatio: false,
-    animation: { duration: 300 },
+    animation: { duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 650, easing: 'easeOutQuart' },
     interaction: { intersect: false, mode: 'index' },
     plugins: {
       legend: {
         display: true,
-        labels: { color: '#8fa8c8', font: { size: 11 } }
+        labels: { color: '#929792', font: { size: 11 } }
       },
       tooltip: {
-        backgroundColor: '#0d1526',
-        borderColor: 'rgba(0,212,255,0.2)',
+        backgroundColor: '#111413',
+        borderColor: 'rgba(255,255,255,0.16)',
         borderWidth: 1,
         titleColor: '#e8eef8',
-        bodyColor: '#8fa8c8',
+        bodyColor: '#929792',
       }
     },
     scales: {
       x: {
-        grid: { color: 'rgba(0,212,255,0.04)', drawBorder: false },
-        ticks: { color: '#a5b6cf', maxTicksLimit: 5, font: { family: 'JetBrains Mono', size: 10 } },
-        border: { color: 'rgba(0,212,255,0.08)' }
+        grid: { color: 'rgba(255,255,255,0.06)', drawBorder: false },
+        ticks: { color: '#929792', maxTicksLimit: 5, font: { family: 'JetBrains Mono', size: 10 } },
+        border: { color: 'rgba(255,255,255,0.08)' }
       },
       y: {
-        title: { display: true, text: ylabel, color: '#a5b6cf', font: { size: 10 } },
-        grid: { color: 'rgba(0,212,255,0.04)', drawBorder: false },
-        ticks: { color: '#a5b6cf', font: { family: 'JetBrains Mono', size: 10 } },
-        border: { color: 'rgba(0,212,255,0.08)' }
+        title: { display: true, text: ylabel, color: '#929792', font: { size: 10 } },
+        grid: { color: 'rgba(255,255,255,0.06)', drawBorder: false },
+        ticks: { color: '#929792', font: { family: 'JetBrains Mono', size: 10 } },
+        border: { color: 'rgba(255,255,255,0.08)' }
       }
     }
   });
 
-  const colors = ['#00d4ff', '#ffb300', '#00e676'];
+  const colors = ['#ededed', '#895bff', '#17e619'];
 
   try {
     overviewCharts.temp = new Chart(tempEl, {
@@ -1905,7 +1906,8 @@ function initOverviewCharts() {
           borderWidth: 2,
           fill: false,
           tension: 0.15,
-          pointRadius: 2,
+          pointRadius: 0,
+          pointHoverRadius: 4,
         }))
       },
       options: chartOpts('°C')
@@ -1923,7 +1925,8 @@ function initOverviewCharts() {
           borderWidth: 2,
           fill: false,
           tension: 0.15,
-          pointRadius: 2,
+          pointRadius: 0,
+          pointHoverRadius: 4,
         }))
       },
       options: chartOpts('g')
@@ -1941,7 +1944,8 @@ function initOverviewCharts() {
           borderWidth: 2,
           fill: false,
           tension: 0.15,
-          pointRadius: 2,
+          pointRadius: 0,
+          pointHoverRadius: 4,
         }))
       },
       options: { ...chartOpts('%'), scales: { ...chartOpts('%').scales, y: { ...chartOpts('%').scales.y, min: 0, max: 100 } } }
@@ -1960,7 +1964,7 @@ function updateOverviewCharts() {
     const samples=(readings[0] || []).slice(-config.chartRange);
     chart.data.labels=samples.map(r=>new Date(r.ts).toLocaleTimeString());
     for(let i=0;i<3;i++) chart.data.datasets[i].data=(readings[i] || []).slice(-config.chartRange).map(r=>r[fields[ci]] ?? null);
-    chart.update('none');
+    chart.update();
   });
 }
 
@@ -1972,6 +1976,15 @@ function updateOverviewPage() {
   for (let i = 0; i < 3; i++) updateMotorCard(i);
   updateTopbarTime();
   updateOverviewCharts();
+  const availableHealth = motorData.filter(m => m && Number.isFinite(m.health));
+  setText('design-fleet-health', availableHealth.length ? Math.round(availableHealth.reduce((sum,m) => sum + m.health, 0) / availableHealth.length) : '—');
+  for (let i = 0; i < 3; i++) {
+    const m = motorData[i];
+    setText(`design-health-${i}`, m && Number.isFinite(m.health) ? `${Math.round(m.health)}%` : '—');
+    setText(`design-state-${i}`, m ? `${config.demoMode ? 'Simulated · ' : ''}${m.state.replaceAll('_', ' ').toLowerCase()}` : 'Data unavailable');
+    const bar = document.getElementById(`design-bar-${i}`);
+    if (bar) bar.style.width = `${m && Number.isFinite(m.health) ? Math.max(0, Math.min(100, m.health)) : 0}%`;
+  }
 }
 
 function updateSummaryStats() {

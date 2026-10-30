@@ -205,6 +205,20 @@
         </div>
 
         <!-- Motor cards grid -->
+        <!-- Quick overview charts -->
+        <div class="overview-charts"><section class="fleet-breakdown" aria-label="Fleet health breakdown">
+  <div class="chart-header"><div class="chart-title">Fleet Health Breakdown</div><span class="panel-dots" aria-hidden="true">⋮</span></div>
+  <div class="breakdown-summary"><span>Average fleet health</span><div><strong id="design-fleet-health">—</strong><span> / 100</span></div></div>
+  <div class="breakdown-columns"><div class="breakdown-column"><span>Motor 01</span><strong id="design-health-0">—</strong><span class="breakdown-state" id="design-state-0">Awaiting telemetry</span><div class="breakdown-track"><div id="design-bar-0"></div></div></div><div class="breakdown-column"><span>Motor 02</span><strong id="design-health-1">—</strong><span class="breakdown-state" id="design-state-1">Awaiting telemetry</span><div class="breakdown-track"><div id="design-bar-1"></div></div></div><div class="breakdown-column"><span>Motor 03</span><strong id="design-health-2">—</strong><span class="breakdown-state" id="design-state-2">Awaiting telemetry</span><div class="breakdown-track"><div id="design-bar-2"></div></div></div></div></section>
+          <div class="chart-card">
+            <div class="chart-header">
+              <div><div class="chart-title">Temperature Trend</div><div class="chart-subtitle">All motors — °C</div></div>
+            </div>
+            <div class="chart-container"><canvas id="overview-chart-temp"></canvas></div>
+          </div>
+
+        </div>
+
         <div class="motors-grid">
 
           <!-- Motor 1 Card -->
@@ -459,17 +473,7 @@
             </div>
           </div>
 
-        </div><!-- /motors-grid -->
-
-        <!-- Quick overview charts -->
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:8px;">
-          <div class="chart-card">
-            <div class="chart-header">
-              <div><div class="chart-title">Temperature Trend</div><div class="chart-subtitle">All motors — °C</div></div>
-            </div>
-            <div class="chart-container"><canvas id="overview-chart-temp"></canvas></div>
-          </div>
-          <div class="chart-card">
+        </div><!-- /motors-grid --><div class="secondary-charts">          <div class="chart-card">
             <div class="chart-header">
               <div><div class="chart-title">Vibration RMS</div><div class="chart-subtitle">All motors — g</div></div>
             </div>
@@ -480,8 +484,8 @@
               <div><div class="chart-title">Health Scores</div><div class="chart-subtitle">All motors — 0–100</div></div>
             </div>
             <div class="chart-container"><canvas id="overview-chart-health"></canvas></div>
-          </div>
-        </div>
+          </div></div>
+
 
       </section>
 
